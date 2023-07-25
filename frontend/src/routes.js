@@ -1,17 +1,3 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
 
 /** 
   All of the routes for the Material Dashboard 2 React are added here,
@@ -49,6 +35,7 @@ import Lease from "layouts/lease";
 
 // @mui icons
 import Icon from "@mui/material/Icon";
+import AllUsers from "layouts/Users";
 
 const routes = [
   {
@@ -71,7 +58,7 @@ const routes = [
   },
   {
     type: "collapse",
-    name: "Users",
+    name: "People",
     key: "users",
     icon: <Icon fontSize="small">people</Icon>,
     route: "/users",
@@ -116,6 +103,14 @@ const routes = [
     route: "/profile",
     component: <Profile />,
   },
+  {
+    route: "/all-users",
+    type: 'collapse',
+    name: "Users",
+    component: <AllUsers />,
+    key: "all-users",
+    icon: <Icon fontSize="small">people</Icon>,
+   },
     {
       type: "collapse",
       name: "Sign In",
@@ -135,10 +130,7 @@ const routes = [
   //   component: <SignUp />,
   // },
 
-  // {
-  //  route: "/profile",
-  //  component: <Profile /> 
-  // }
+ 
 ];
 
 export default routes;

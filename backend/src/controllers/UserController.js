@@ -239,6 +239,8 @@ const getDashboard = async (req, res, next) => {
     }
 }
 
+// Get Single User
+
 const getSingleUser = async (req, res, next) => {
     try {
        const {email} = req.params;
@@ -259,9 +261,70 @@ const getSingleUser = async (req, res, next) => {
     }
 }
 
+// Get All Users
 
+const getAllUser = async (req, res, next) => {
+    const Users = await UserRepo.findAllUsers()
+    if (!Users) {
+        return badRequest(req, ' Something Went wrong', [])
+    }
+    successResponse(res, "Fetched Users", Users, 200)
+}
 
+// Delete a Users
 
+const deleteUser = async (req, res, next) => {
+    try {
+      const userId = req.params.id; 
+
+      const deletedUser = await UserRepo.deleteUserById(userId);
+  
+      if (!deletedUser) {
+        return badRequest(res, 'User not found', {}, 404);
+      }
+  
+      successResponse(res, "User deleted successfully", deletedUser, 200);
+    } catch (error) {
+      console.error("Error deleting user:", error);
+      return badRequest(res, "Server Error", 500);
+    }
+  };
+  
+// Update a User
+
+  const updateUser = async (req, res, next) => {
+    const { id } = req.params;
+    const { adminFlag, ...userData } = req.body;
+    try {
+      let updatedUser;
+      if (adminFlag) {
+        updatedUser = await UserRepo.findUserAndUpdate(id, adminFlag, {
+          name: userData.name,
+          email: userData.email,
+          role: userData.role,
+        });
+        if (!updatedUser) {
+          return badRequest(res, 'User Not Found', [], 404);
+        }
+        return successResponse(res, 'User Updated Successfully', updatedUser, 200);
+      }
+  
+      updatedUser = await UserRepo.findUserAndUpdate(id, adminFlag, {
+        firstName: userData.firstName,
+        middleName: userData.middleName,
+        lastName: userData.lastName,
+        primaryEmail: userData.primaryEmail,
+        type: userData.type,
+      });
+      if (!updatedUser) {
+        return badRequest(res, 'User Not Found', [], 404);
+      }
+      return successResponse(res, 'User Updated Successfully', updatedUser, 200);
+    } catch (error) {
+      next(error);
+    }
+  };
+  
 
 module.exports = {
     createNewUser,
@@ -272,5 +335,8 @@ module.exports = {
     permanentDeleteUser,
     getDashboard,
     getSingleUser,
-    changeProfilePicture
+    changeProfilePicture,
+    getAllUser,
+    deleteUser,
+    updateUser
 }
