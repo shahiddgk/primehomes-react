@@ -12,8 +12,8 @@ const cloudinary = require('cloudinary').v2
 
 cloudinary.config({ 
     cloud_name: 'dwf0svqiw', 
-    api_key: process.env.CLOUDINARY_API_KEY, 
-    api_secret: process.env.CLOUDINARY_API_SECRET_KEY 
+    api_key: '695943357591853', 
+    api_secret: 'tX0GG4ca2J1h3fntFdHAI8iYLXo' 
   });
 
 const createNewUser = async (req, res, next) => {
@@ -67,21 +67,22 @@ const createNewUser = async (req, res, next) => {
 
 const changeProfilePicture = async (req, res, next) => {
   try {
-      const file = req.files.avatar
-    const {email} = req.body
+      const {email} = req.body
+      console.log(email);
+      const file = req.files.avatar;
     if (!file) {
         return badRequest(res,'Please Provide the required Data',[])
     }
 
     cloudinary.uploader.upload(file.tempFilePath,async (err,result)=>{
         const imageUrl = result.url;
-        console.log(imageUrl);
         const changeProfile = await UserRepo.updatedImage(email,imageUrl)
         console.log('check Profile',changeProfile);
         if (!changeProfile) {
             return badRequest(res, ' Something went wrong', [])
         }
-
+        const io = req.app.get('io')
+        io.emit('updatedProfile',changeProfile?.imageUrl)
         successResponse(res, 'Profile Updated Successfully', changeProfile,200)
 
     })
@@ -128,11 +129,22 @@ const login = async (req, res, next) => {
 
 const updateProfile = async (req, res, next) => {   
     try{
-        const {name, mobile} = req.body
+        const {name, mobile, email} = req.body
+        console.log(name, mobile, email);
         const {_id} = req.userData
       
-        await UserRepo.updateByObj(_id, {name, mobile})
-        successResponse(res, 'Profile Updated Successfully.', [], 200)
+        let User = await UserRepo.updateByObj(_id, {name, mobile, email})
+        if (!User) {
+            return badRequest(res, 'Something Went Wrong', [])
+        }
+        const io = req.app.get('io')
+        io.emit('updatedUser', [User.name, User.mobile, User.email])
+        User = {
+            fullName : User.name,
+            email : User.email,
+            mobile : User.mobile,
+        }
+        successResponse(res, 'Profile Updated Successfully.', User, 200)
     }catch(err){
         next(err)
     }

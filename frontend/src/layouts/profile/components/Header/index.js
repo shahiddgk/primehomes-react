@@ -25,12 +25,28 @@ import burceMars from "assets/images/bruce-mars.jpg";
 import backgroundImage from "assets/images/bg-profile.jpeg";
 import { Typography } from "@mui/material";
 import axios from "axios";
+import { RotatingLines } from "react-loader-spinner";
+import { io } from 'socket.io-client';
 
 function Header({ children,name,role,image,email}) {
   const [tabsOrientation, setTabsOrientation] = useState("horizontal");
   const [tabValue, setTabValue] = useState(0);
+  const [loader, setLoader] = useState(false)
   const [imageUrl,setImageUrl] = useState('')
+  const [updatedName,setUpdatedName] = useState('')
   const fileInputRef = useRef(null);
+  useEffect(() => {
+    const userId = sessionStorage.getItem('userId');
+    const socket = io.connect(`http://192.168.10.19:4003?userId=${userId}`);
+    socket.on('updatedUser', (data) => {
+      setUpdatedName(data[0]); // Update the form values with the data received from the socket
+
+    });
+
+    return () => {
+      socket.disconnect(); // Clean up the socket connection on component unmount
+    };
+  }, []);
   useEffect(() => {
     // A function that sets the orientation state of the tabs.
     function handleTabsOrientation() {
@@ -60,18 +76,22 @@ function Header({ children,name,role,image,email}) {
 
   const handleFileChange = async(event) => {
     const file = event.target.files[0];
+    console.log(file);
     const formData = new FormData();
     formData.append('avatar', file);
     formData.append('email',email)
-
+    console.log(formData.get('avatar')); 
+  console.log(formData.get('email'));
     try {
+      setLoader(true)
       const response = await axios.post('users/upload', formData, {
         headers: {
           'Content-Type': 'multipart/form-data',
         },
       });
-
+      console.log(response.data.data.imageUrl);
       setImageUrl(response.data.data.imageUrl);
+      setLoader(false)
       // Handle response or update state as needed
 
     } catch (error) {
@@ -123,14 +143,22 @@ function Header({ children,name,role,image,email}) {
                 accept="image/*"
                 onChange={handleFileChange}
                  />
-               <MDAvatar src={imageUrl? imageUrl:image} alt="profile-image" className="profile-image" size="xl" shadow="sm" />
+              {loader ? <div style={{ marginRight: '100%', display: 'inline-block' }}>
+                        <RotatingLines
+                        strokeColor="black"
+                        strokeWidth="5"
+                        animationDuration="0.75"
+                        width="65"
+                        visible
+
+                        /></div> : <MDAvatar src={imageUrl? imageUrl:image} alt="profile-image" className="profile-image" size="xl" shadow="sm" />}
           </div>
             
           </Grid>
           <Grid item>
             <MDBox height="100%" mt={0.5} lineHeight={1}>
               <MDTypography variant="h5" fontWeight="medium">
-                {name}
+                {updatedName? updatedName: name}
               </MDTypography>
               <MDTypography variant="button" color="text" fontWeight="regular">
                {role}

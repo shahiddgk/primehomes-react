@@ -33,10 +33,6 @@ app.use( bodyParser.urlencoded({ extended: true }));
 
 // app.use('/uploads', express.static('uploads'))
 
-const fileUpload = require('express-fileupload')
-app.use(fileUpload({
-  useTempFiles:true
-}))
 
 // sanitize request data
 app.use(xss());
@@ -57,6 +53,10 @@ app.options('*', cors());
 // if (config.env === 'production') {
 //   app.use('/v1/auth', authLimiter);
 // }
+const fileUpload = require('express-fileupload')
+app.use(fileUpload({
+  useTempFiles:true
+}))
 
 // v1 api routes
 app.use('/v1', routes);
@@ -74,4 +74,6 @@ app.use(errorHandler);
 
 
 
-module.exports = app;
+module.exports = 
+{app}
+;

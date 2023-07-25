@@ -14,7 +14,11 @@ const createServer = () => {
 
     // parse urlencoded request body
     app.use(express.urlencoded({ extended: true }));
-
+    const fileUpload = require('express-fileupload')
+    app.use(fileUpload({
+      useTempFiles:true
+    }))
+    
      // enable cors
     app.use(cors());
     app.options('*', cors());

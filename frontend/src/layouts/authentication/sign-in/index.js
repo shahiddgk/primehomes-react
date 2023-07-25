@@ -31,6 +31,7 @@ function Basic() {
         email: data.email,
         password: data.password
       })
+      console.log(res);
       alert(res?.data?.message)
       sessionStorage.setItem("data", JSON.stringify(res.data.data));
       axios.defaults.headers.common = {'Authorization': `bearer ${res?.data?.data?.token}`}

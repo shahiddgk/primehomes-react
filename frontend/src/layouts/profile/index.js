@@ -1,17 +1,3 @@
-/**
-=========================================================
-* Material Dashboard 2 React - v2.1.0
-=========================================================
-
-* Product Page: https://www.creative-tim.com/product/material-dashboard-react
-* Copyright 2022 Creative Tim (https://www.creative-tim.com)
-
-Coded by www.creative-tim.com
-
- =========================================================
-
-* The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
-*/
 
 // @mui material components
 import Grid from "@mui/material/Grid";
@@ -58,13 +44,14 @@ import { Paper } from "@mui/material";
 function Overview() {
   
   const [profile,setProfile] = useState([])
-  const [dataFromChild,setDataFromChild] = useState('')
+  const [image,setImage] = useState('')
   useEffect( async () => {
     const user = sessionStorage.getItem('data');
     const { userData: { email } } = JSON.parse(user);
     console.log(email);
     const response = await axios.get(`users/user/${email}`);
-    setProfile(response.data.data);
+    setImage(response?.data?.data?.imageUrl);
+    setProfile(response?.data?.data);
     
   },[])
 
@@ -73,17 +60,21 @@ function Overview() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox mb={2} />
-      <Header name={profile.name} role={profile.role} image= {profile.imageUrl} email={profile.email} >
+      <Header name={profile.name} role={profile.role} image= {image} email={profile.email} >
         <MDBox mt={5} mb={3}>
           <Grid container spacing={1}>
-          <Grid item xs={12} md={6} xl={4} sx={{ display: "flex" }}>
+          <Grid item xs={12} md={12} xl={8} sx={{ display: "grid", mx: "auto" }}>
               <Divider orientation="vertical" sx={{ ml: -2, mr: 1 }} />
           <Paper elevation={16} >
               <ProfileInfoCard
                 title="profile information"
               
-                info={{
+                info={profile ? {
                   fullName: profile.name,
+                  mobile: profile.mobile,
+                  email: profile.email,
+                }:{
+                  fullName:profile.name,
                   mobile: profile.mobile,
                   email: profile.email,
                 }}
@@ -94,13 +85,13 @@ function Overview() {
             </Paper>
               <Divider orientation="vertical" sx={{ mx: 0 }} />
             </Grid>
-            <Grid item xs={12} md={6} xl={4}>
-              {/* <PlatformSettings /> */}
-            </Grid>
+            {/* <Grid item xs={12} md={6} xl={4}>
+              <PlatformSettings />
+            </Grid> */}
            
-            <Grid item xs={12} xl={4}>
-              {/* <ProfilesList title="conversations" profiles={profilesListData} shadow={false} /> */}
-            </Grid>
+            {/* <Grid item xs={12} xl={4}>
+              <ProfilesList title="conversations" profiles={profilesListData} shadow={false} />
+            </Grid> */}
           </Grid>
         </MDBox>
         {/* <MDBox pt={2} px={2} lineHeight={1.25}>

@@ -1,88 +1,142 @@
+import React, { useState, useEffect } from 'react';
+import { Link } from 'react-router-dom';
+import PropTypes from 'prop-types';
+import Card from '@mui/material/Card';
+import Tooltip from '@mui/material/Tooltip';
+import Icon from '@mui/material/Icon';
+import TextField from '@mui/material/TextField';
+import Button from '@mui/material/Button';
+import Box from '@mui/material/Box';
+import MDBox from 'components/MDBox';
+import MDTypography from 'components/MDTypography';
+import { io } from 'socket.io-client';
+import axios from 'axios';
 
-// react-routers components
-import { Link } from "react-router-dom";
-
-// prop-types is library for typechecking of props
-import PropTypes from "prop-types";
-
-// @mui material components
-import Card from "@mui/material/Card";
-import Divider from "@mui/material/Divider";
-import Tooltip from "@mui/material/Tooltip";
-import Icon from "@mui/material/Icon";
-
-// Material Dashboard 2 React components
-import MDBox from "components/MDBox";
-import MDTypography from "components/MDTypography";
-
-// Material Dashboard 2 React base styles
-import colors from "assets/theme/base/colors";
-import typography from "assets/theme/base/typography";
-
-function ProfileInfoCard({ title,  info,  action, shadow }) {
-  const labels = [];
-  const values = [];
-  const { socialMediaColors } = colors;
-  const { size } = typography;
-
-  // Convert this form `objectKey` of the object key in to this `object key`
-  Object.keys(info).forEach((el) => {
-    if (el.match(/[A-Z\s]+/)) {
-      const uppercaseLetter = Array.from(el).find((i) => i.match(/[A-Z]+/));
-      const newElement = el.replace(uppercaseLetter, ` ${uppercaseLetter.toLowerCase()}`);
-
-      labels.push(newElement);
-    } else {
-      labels.push(el);
-    }
+function ProfileInfoCard({ title, info, action, shadow }) {
+  const [editMode, setEditMode] = useState(false);
+  const [formValues, setFormValues] = useState(() => {
+    const userInfoFromStorage = sessionStorage.getItem('userInfo');
+    return userInfoFromStorage ? JSON.parse(userInfoFromStorage) : info;
   });
+  const labels = Object.keys(info);
 
-  // Push the object values into the values array
-  Object.values(info).forEach((el) => values.push(el));
+  useEffect(() => {
+    const userId = sessionStorage.getItem('userId');
+    const socket = io.connect(`http://192.168.10.19:4003?userId=${userId}`);
+    socket.on('updatedUser', (data) => {
+      setFormValues(data);
+    });
 
-  // Render the card info items
-  const renderItems = labels.map((label, key) => (
-    <MDBox key={label} display="flex" py={1} pr={2}>
-      <MDTypography variant="button" fontWeight="bold" textTransform="capitalize">
-        {label}: &nbsp;
-      </MDTypography>
-      <MDTypography variant="button" fontWeight="regular" color="text">
-        &nbsp;{values[key]}
-      </MDTypography>
-    </MDBox>
-  ));
+    return () => {
+      socket.disconnect();
+    };
+  }, []);
+
+  const handleUpdate = () => {
+    setEditMode(true);
+  };
+
+  const handleChange = (event, label) => {
+    setFormValues((prevFormValues) => ({ ...prevFormValues, [label]: event.target.value }));
+  };
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+
+    try {
+      const { fullName: name, email, mobile } = formValues;
+      const response = await axios.put('users/profile', { name, email, mobile });
+      console.log(response.data);
+
+      sessionStorage.setItem('userInfo', JSON.stringify(formValues));
+
+      // Update the 'info' prop with the new values received from the server
+      const updatedInfo = { ...info, ...formValues };
+      setEditMode(false);
+      setFormValues(updatedInfo);
 
 
+    } catch (error) {
+      console.error('Error updating user information:', error);
+    }
+  };
 
-  return (
-    <Card sx={{ height: "100%", boxShadow: !shadow && "none" }}>
+  const renderForm = (
+    <Card sx={{ height: '100%', boxShadow: !shadow && 'none' }}>
+      <MDBox display="flex" justifyContent="space-between" alignItems="center" pt={2} px={2}>
+        <MDTypography variant="h6" fontWeight="medium" textTransform="capitalize">
+          Update Profile
+        </MDTypography>
+      </MDBox>
+      <MDBox p={2}>
+        <MDBox sx={{ mx: 'auto', textAlign: 'center', my: '2' }}>
+          <form onSubmit={handleSubmit}>
+            {labels.map((label) => (
+              <TextField
+                key={`label-${label}`}
+                margin="normal"
+                sx={{ width: '75%' }}
+                required
+                id={`outlined-required-${label}`}
+                label={label}
+                value={formValues[label] || ''}
+                onChange={(event) => handleChange(event, label)}
+              />
+            ))}
+            <br />
+            <Box textAlign="left" marginLeft="100px">
+              <Button type="submit" variant="contained" color="white">
+                Submit
+              </Button>
+            </Box>
+          </form>
+        </MDBox>
+      </MDBox>
+    </Card>
+  );
+
+  const renderInfoCard = (
+    <Card sx={{ height: '100%', boxShadow: !shadow && 'none' }}>
       <MDBox display="flex" justifyContent="space-between" alignItems="center" pt={2} px={2}>
         <MDTypography variant="h6" fontWeight="medium" textTransform="capitalize">
           {title}
         </MDTypography>
-        <MDTypography component={Link} to={action.route} variant="body2" color="secondary">
+        <MDTypography
+          component={Link}
+          to={action.route}
+          variant="body2"
+          color="secondary"
+          onClick={handleUpdate}
+        >
           <Tooltip title={action.tooltip} placement="top">
             <Icon>edit</Icon>
           </Tooltip>
         </MDTypography>
       </MDBox>
       <MDBox p={2}>
-      
         <MDBox>
-          {renderItems}
-          
+          {labels.map((label) => (
+            <MDBox key={label} display="flex" py={1} pr={2}>
+              <MDTypography variant="button" fontWeight="bold" textTransform="capitalize">
+                {label}: &nbsp;
+              </MDTypography>
+              <MDTypography variant="button" fontWeight="regular" color="text">
+                &nbsp;{formValues[label]}
+              </MDTypography>
+            </MDBox>
+          ))}
         </MDBox>
       </MDBox>
     </Card>
   );
+
+  return <div>{editMode ? renderForm : renderInfoCard}</div>;
 }
 
-// Setting default props for the ProfileInfoCard
 ProfileInfoCard.defaultProps = {
   shadow: true,
 };
 
-// Typechecking props for the ProfileInfoCard
 ProfileInfoCard.propTypes = {
   title: PropTypes.string.isRequired,
   info: PropTypes.objectOf(PropTypes.string).isRequired,
