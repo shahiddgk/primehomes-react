@@ -4,13 +4,14 @@ import axios from 'axios';
 import DataTable from 'examples/Tables/DataTable';
 import MDBox from 'components/MDBox';
 import { Button, Card, Grid } from '@mui/material';
-import { Create, Delete, Edit } from '@mui/icons-material';
+import { Add, Create, Delete, Edit } from '@mui/icons-material';
 import DashboardNavbar from 'examples/Navbars/DashboardNavbar';
 import DashboardLayout from 'examples/LayoutContainers/DashboardLayout';
 import Swal from 'sweetalert2';
 import MDInput from 'components/MDInput';
 import MDButton from 'components/MDButton';
 import { Form, Modal, Row, Tab } from "react-bootstrap";
+import MDTypography from 'components/MDTypography';
 
 
 const PeopleColumn = [
@@ -63,7 +64,7 @@ export default function Users() {
         });
       };
     
-    const deletePerson = row => {
+      const deletePerson = row => {
        const newName = row.name || `${row.firstName} ${row.middleName} ${row.lastName}`
         Swal.fire({
           title: `Are You Sure To Delete The User?
@@ -184,9 +185,33 @@ export default function Users() {
 
         <DashboardLayout>
         <DashboardNavbar />
+        <MDButton
+            size='medium'
+            variant = "contained"
+            color= 'info'
+            sx={{ maxWidth: '240px', marginTop: '30px' }}
+            > 
+            <Add /> &nbsp;&nbsp; Add Building 
+            </MDButton>
         <Grid container justifyContent="center" > 
+      
         <Card sx={{ my: 4 }}> 
+        <MDBox
+                mx={2}
+                mt={-3}
+                py={3}
+                px={2}
+                variant="gradient"
+                bgColor="info"
+                borderRadius="lg"
+                coloredShadow="info"
+              >
+                <MDTypography variant="h6" color="white">
+                  Users Table
+                </MDTypography>
+              </MDBox>
         <MDBox pt={3}>
+        
         <DataTable
           table={{ columns: PeopleColumn, rows: usersData }}
           isSorted

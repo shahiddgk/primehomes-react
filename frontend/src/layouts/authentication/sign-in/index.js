@@ -34,6 +34,14 @@ function Basic() {
       console.log(res);
       alert(res?.data?.message)
       sessionStorage.setItem("data", JSON.stringify(res.data.data));
+      const userinfo = res.data.data.userInfo
+      const newUser = {
+        fullName: userinfo.name,
+        email:userinfo.email,
+        mobile: userinfo.mobile
+      }
+      console.log('new User==',newUser);
+      sessionStorage.setItem("userInfo", JSON.stringify(newUser));
       axios.defaults.headers.common = {'Authorization': `bearer ${res?.data?.data?.token}`}
       navigate('/')
 

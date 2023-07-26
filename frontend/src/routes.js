@@ -32,10 +32,11 @@ import Profile from "layouts/profile";
 import SignIn from "layouts/authentication/sign-in";
 import Units from "layouts/Units";
 import Lease from "layouts/lease";
-
+import AllUsers from "layouts/Users";
+import Roles from "layouts/roles";
 // @mui icons
 import Icon from "@mui/material/Icon";
-import AllUsers from "layouts/Users";
+import FingerprintIcon from '@mui/icons-material/Fingerprint';
 
 const routes = [
   {
@@ -110,6 +111,14 @@ const routes = [
     component: <AllUsers />,
     key: "all-users",
     icon: <Icon fontSize="small">people</Icon>,
+   },
+  {
+    route: "/roles",
+    type: 'collapse',
+    name: "Manage Roles",
+    component: <Roles />,
+    key: "roles",
+    icon: < FingerprintIcon fontSize="small" />,
    },
     {
       type: "collapse",

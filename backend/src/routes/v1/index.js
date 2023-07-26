@@ -5,12 +5,14 @@ const BuildingRouter = require('./BuildingRouter')
 const PeopleRouter = require('./PeopleRouter')
 const UnitRouter = require('./UnitRouter')
 const LeaseRouter = require('./LeaseRouter')
+const RolesRouter = require('./RolesRouter')
 
 router.use('/users', UserRouter)
 router.use('/buildings', BuildingRouter)
 router.use('/people', PeopleRouter)
 router.use('/units', UnitRouter)
 router.use('/lease', LeaseRouter)
+router.use('/roles', RolesRouter)
 
 
 module.exports = router;

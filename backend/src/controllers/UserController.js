@@ -117,11 +117,16 @@ const login = async (req, res, next) => {
             name: User.name,
             email
         }
+        const userInfo =  {
+            name: User.name,
+            email: User.email,
+            mobile: User.mobile
+        }
 
         console.log("[UserController:login] Logged in Successfully")
         const token = jwt.sign({User: User._id}, process.env.JWT_SECRET)
 
-        successResponse(res, 'Login Successful.', {userData, token})
+        successResponse(res, 'Login Successful.', {userData, token, userInfo})
    }catch(err){
      next(err)
    }
