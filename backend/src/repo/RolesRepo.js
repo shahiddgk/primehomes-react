@@ -5,9 +5,9 @@ const findName = async (name) => {
     return await RolesModel.findOne({name})
 }
 
-const createNewRole = async (name,roles) => {
-    return await RolesModel.create({name,...roles})
-}
+const createNewRole = async (name, permissions) => {
+  return await RolesModel.create({ name, permissions});
+};
 
 const findAllRoles = async () => {
     return await RolesModel.find({})
@@ -18,14 +18,14 @@ const deleteRole = async (_id) => {
 }
 
 
-const updateRole = async (id, name, roles) => {
+const updateRole = async (id, name, permissions) => {
     try {
       return await RolesModel.findOneAndUpdate(
         { _id: id },
         {
           $set: {
             name,
-            ...roles
+            permissions
           }
         },
         { new: true }

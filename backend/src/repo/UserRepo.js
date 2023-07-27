@@ -94,7 +94,7 @@ const findUserAndUpdate = async (userId, adminFlag, newData) => {
     }
     const updatedUser = await PeopleModel.findByIdAndUpdate(
       {_id: userId },
-      { $set: newData },
+      { $set: { firstName: newData.firstName, middleName: newData.middleName, lastName: newData.lastName, primaryEmail: newData.primaryEmail, type: newData.type } },
       { new: true } // Return the updated document
     );
 

@@ -34,9 +34,11 @@ import Units from "layouts/Units";
 import Lease from "layouts/lease";
 import AllUsers from "layouts/Users";
 import Roles from "layouts/roles";
+import Amenity from "layouts/amenity";
 // @mui icons
 import Icon from "@mui/material/Icon";
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
+import DryIcon from '@mui/icons-material/Dry';
 
 const routes = [
   {
@@ -119,6 +121,14 @@ const routes = [
     component: <Roles />,
     key: "roles",
     icon: < FingerprintIcon fontSize="small" />,
+   },
+  {
+    route: "/amenity",
+    type: 'collapse',
+    name: "Manage Amenities",
+    component: <Amenity />,
+    key: "amenity",
+    icon: < DryIcon fontSize="small" />,
    },
     {
       type: "collapse",

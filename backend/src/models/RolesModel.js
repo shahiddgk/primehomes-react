@@ -6,38 +6,8 @@ const RolesSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
-    roleList: {
-      type: Boolean,
-      default: false,
-    },
-    roleCreate: {
-      type: Boolean,
-      default: false,
-    },
-    roleEdit: {
-      type: Boolean,
-      default: false,
-    },
-    roleDelete: {
-      type: Boolean,
-      default: false,
-    },
-    ownerList: {
-      type: Boolean,
-      default: false,
-    },
-    ownerCreate: {
-      type: Boolean,
-      default: false,
-    },
-    ownerEdit: {
-      type: Boolean,
-      default: false,
-    },
-    ownerDelete: {
-      type: Boolean,
-      default: false,
-    },
+   permissions: [{type : String}],
+   description: {type: String, default: null}
   },
   {
     timestamps: true,

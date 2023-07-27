@@ -28,80 +28,89 @@ const PeopleColumn = [
 ];
 
 export default function Roles() {
-  const initialCheckboxes = [
-    { label: 'role-list', value: false },
-    { label: 'role-create', value: false },
-    { label: 'role-edit', value: false },
-    { label: 'role-delete', value: false },
-    { label: 'owner-list', value: false },
-    { label: 'owner-create', value: false },
-    { label: 'owner-edit', value: false },
-    { label: 'owner-delete', value: false },
-  ];
-
   const [name, setName] = useState('');
-  const [checkboxValues, setCheckboxValues] = useState(initialCheckboxes);
+  const [checkboxValues, setCheckboxValues] = useState([]);
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
   const [mode, setMode] = useState('Submit'); 
+  const [permissions, setPermissions] = useState([]);
+  const [permissionsFetching, setPermissionsFetching] = useState(false);
 
+  const convertToLabelFormat = (str) => {
+    return str
+      .split('-')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  };
 
-  const handleEdit = (row) => {
+  const convertToAPIFormat = (str) => {
+    return str.toLowerCase().replace(/\s+/g, '-');
+  };
+
+  const fetchPermissions = async () => {
+    try {
+      setPermissionsFetching(true); // Set permissionsFetching to true while fetching permissions
+
+      const response = await axios.get('roles/permissions');
+      const formattedPermissions = response.data.data.map((permission) => ({
+        label: convertToLabelFormat(permission.name),
+        value: false,
+      }));
+      setPermissions(formattedPermissions);
+
+      // Initialize checkboxValues with default values based on permissions
+      const initialCheckboxValues = formattedPermissions.map((permission) => ({
+        label: permission.label,
+        value: false,
+      }));
+      setCheckboxValues(initialCheckboxValues);
+
+      setPermissionsFetching(false); // Permissions fetched successfully, set permissionsFetching to false
+    } catch (error) {
+      console.log('Error fetching permissions:', error);
+      setPermissionsFetching(false); // In case of an error, also set permissionsFetching to false
+    }
+  };
+
+   const handleEdit = async (row) => {
     setSelectedRole(row);
     setName(row.name);
-  
-    const updatedCheckboxes = initialCheckboxes.map((checkbox) => {
-      console.log('check.......',checkbox);
-      const camelCaseKey = checkbox.label
-      .split('-')
-      .map((word, index) => (index === 0 ? word : word.charAt(0).toUpperCase() + word.slice(1)))
-      .join('');
-      const value = row[camelCaseKey];
-      console.log(`label: ${checkbox.label}, key: ${camelCaseKey}, value: ${value}`);
-      return {
-        ...checkbox,
-        value,
-      };
-    });
-    setCheckboxValues(updatedCheckboxes);
+    await fetchPermissions();
+
+    // Check if "row.permissions" exists and is an array before proceeding
+    const updatedPermissions = permissions.map((permission) => ({
+      label: permission.label,
+      value: row.permissions && row.permissions.includes(convertToAPIFormat(permission.label)),
+    }));
+    setPermissions(updatedPermissions);
     setMode('Update');
   };
-  
-  
-  
-  
 
-  const handleCancelEdit = () => {
-    setSelectedRole(null);
-    setName('');
-    setCheckboxValues(initialCheckboxes.map((checkbox) => ({ ...checkbox, value: false })));
-    setMode('Submit'); // Set mode back to 'Submit' when cancelling the edit
-  };
-
-  const handleDelete =  (row) => {
+  const handleDelete = (row) => {
     axios.delete(`/roles/role/${row._id}`)
       .then(async (response) => {
         const res = await axios.get('/roles/role');
-      console.log(response.data.data);
-      setRoles(res.data.data.map((x, index) => {
-        const editBtn = (
-          <Button size="medium" onClick={() => handleEdit(x)}>
-            <Edit color="info" />
-          </Button>
-        );
-        const deleteBtn = <Button size="medium" onClick={() => handleDelete(x)}> <Delete color="error" /> </Button>;
-        return {
-          ...x,
-          index: index + 1,
-          name: x.name,
-          action: <>{editBtn} {deleteBtn} </>
-        };
-      }));
+        console.log(response.data.data);
+        setRoles(res.data.data.map((x, index) => {
+          const editBtn = (
+            <Button size="medium" onClick={() => handleEdit(x)}>
+              <Edit color="info" />
+            </Button>
+          );
+          const deleteBtn = <Button size="medium" onClick={() => handleDelete(x)}> <Delete color="error" /> </Button>;
+          return {
+            ...x,
+            index: index + 1,
+            name: x.name,
+            action: <>{editBtn} {deleteBtn} </>
+          };
+        }));
       })
       .catch((error) => {
         console.error(error);
       });
   };
+
   const fetchData = async () => {
     try {
       const response = await axios.get('/roles/role');
@@ -124,86 +133,87 @@ export default function Roles() {
       console.log('Error fetching roles:', error);
     }
   };
+  const handleCancelEdit = () => {
+    fetchData();
+    fetchPermissions();
+    setSelectedRole(null);
+    setName('');
+    setCheckboxValues(permissions.map((permission) => ({ label: permission.name, value: false })));
+    setMode('Submit');
+  };
 
   useEffect(() => {
     fetchData();
+    fetchPermissions();
   }, []);
 
-  
+  const handleCheckboxChange = (label) => (event) => {
+    const updatedPermissions = permissions.map((permission) =>
+      permission.label === label ? { ...permission, value: event.target.checked } : permission
+    );
+    setPermissions(updatedPermissions);
+  };
 
   const handleUpdate = () => {
     const rolesData = {};
-    checkboxValues.forEach((checkbox) => {
-      const formattedLabel = checkbox.label.replace(/([a-z0-9])([A-Z])/g, '$1-$2').toLowerCase();
-      console.log(`label: ${checkbox.label}, formattedLabel: ${formattedLabel}, value: ${checkbox.value}`);
-    
-      rolesData[formattedLabel] = checkbox.value;
-      console.log('roelsdata',rolesData);
+    permissions.forEach((permission) => {
+      rolesData[convertToAPIFormat(permission.label)] = permission.value;
     });
-    
 
     const formData = {
       name,
-      roles: rolesData,
+      permissions: Object.keys(rolesData).filter((key) => rolesData[key] === true),
     };
 
-    axios.patch(`/roles/role/${selectedRole._id}`, formData) 
+    axios
+      .patch(`/roles/role/${selectedRole._id}`, formData)
       .then((response) => {
         console.log(response.data);
-        fetchData(); // Refetch the data after successful update
-        setSelectedRole(null); // Clear the selected role after update
-        setName(''); // Clear the name input field after update
-        setCheckboxValues(initialCheckboxes.map((checkbox) => ({ ...checkbox, value: false }))); // Clear checkbox values after update
+        fetchData();
+        fetchPermissions();
+        setSelectedRole(null);
+        setName('');
+        setMode('Submit');
       })
       .catch((error) => {
         console.error(error);
       });
   };
-
-
-
+  
   const handleInputChange = (event) => {
     setName(event.target.value);
   };
 
-  const handleCheckboxChange = (label) => (event) => {
-    const updatedCheckboxes = checkboxValues.map((checkbox) =>
-      checkbox.label === label ? { ...checkbox, value: event.target.checked } : checkbox
-    );
-    setCheckboxValues(updatedCheckboxes);
-    console.log('updated checkbox', updatedCheckboxes);
-  };
 
-  const handleSubmit = () => { 
-    const rolesData = {};
-    checkboxValues.forEach((checkbox) => {
-      rolesData[checkbox.label] = checkbox.value;
-    });
 
+  const handleSubmit = () => {
     const formData = {
       name,
-      roles: rolesData,
+      permissions: permissions
+        .filter((permission) => permission.value === true)
+        .map((permission) => convertToAPIFormat(permission.label)),
     };
-    console.log('form', formData);
-    axios.post('roles/',formData
-    )
+
+    axios
+      .post('roles/', formData)
       .then((response) => {
         console.log(response.data);
         fetchData();
+        fetchPermissions();
         setSelectedRole(null);
         setName('');
-        setCheckboxValues(initialCheckboxes.map((checkbox) => ({ ...checkbox, value: false })));
-        setMode('Submit'); // Set mode back to 'Submit' after successful update/submit
+        setMode('Submit');
       })
       .catch((error) => {
         console.error(error);
       });
   };
+  
 
   return (
     <Grid container justifyContent="center">
       <Card sx={{ my: 4, marginLeft: '120px' }}>
-        <CardHeader title={mode === 'Submit' ?"Create Role" : "Update Role"} />
+        <CardHeader title={mode === 'Submit' ? "Create Role" : "Update Role"} />
         <Divider />
         <CardContent>
           <form>
@@ -213,29 +223,33 @@ export default function Roles() {
               onChange={handleInputChange}
             />
               <Divider />
-            <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              {checkboxValues.map((checkbox) => (
-                <FormControlLabel
-                  key={uuidv4()} 
-                  control={
-                    <Checkbox
-                      checked={checkbox.value}
-                      onChange={handleCheckboxChange(checkbox.label)}
+              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
+                {permissionsFetching ? (
+                  <div>Loading permissions...</div>
+                ) : (
+                  permissions.map((permission) => (
+                    <FormControlLabel
+                      key={uuidv4()}
+                      control={
+                        <Checkbox
+                          checked={permission.value}
+                          onChange={handleCheckboxChange(permission.label)}
+                        />
+                      }
+                      label={permission.label}
                     />
-                  }
-                  label={checkbox.label}
-                />
-              ))}
-            </div>
+                  ))
+                )}
+              </div>
             <Divider />
-           <Button variant="contained" color="white"  onClick={mode === 'Submit' ? handleSubmit : handleUpdate}>
-        {mode === 'Submit' ? 'Submit' : 'Update'} {/* Toggle button text based on mode */}
-      </Button>
-      {mode === 'Update' && (
-        <Button variant="contained" color="error" onClick={handleCancelEdit}>
-          Cancel {/* Show "Cancel" button when in update mode */}
-        </Button>
-      )}
+            <Button variant="contained" color="white" style={{marginRight: '20px'}} onClick={mode === 'Submit' ? handleSubmit : handleUpdate}>
+              {mode === 'Submit' ? 'Submit' : 'Update'} {/* Toggle button text based on mode */}
+            </Button>
+            {mode === 'Update' && (
+              <Button variant="contained" color="error" onClick={handleCancelEdit}>
+                Cancel {/* Show "Cancel" button when in update mode */}
+              </Button>
+            )}
           </form>
         </CardContent>
         <Divider />
@@ -248,7 +262,6 @@ export default function Roles() {
             showTotalEntries
             pagination
           />
-
         </MDBox>
       </Card>
     </Grid>

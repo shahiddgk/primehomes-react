@@ -19,9 +19,8 @@ cloudinary.config({
 const createNewUser = async (req, res, next) => {
     try{
 
-        const file = req.files.avatar
         const {name, email, password, mobile, role} = req.body
-        if(!(name && email && password && role && file)){
+        if(!(name && email && password && role)){
             return badRequest(res, 'Please Provide the Required Data with Request!', [])
         }
         // check already exists
@@ -35,16 +34,10 @@ const createNewUser = async (req, res, next) => {
             return badRequest(res, 'Email Should be Correct!', email)
         }
 
-
-
-        cloudinary.uploader.upload(file.tempFilePath,async (err,result)=>{
-            const imageUrl = result.url; 
-
-            // Encrypting Password
-            var salt = bcrypt.genSaltSync(10);
+        var salt = bcrypt.genSaltSync(10);
             var hashPass = bcrypt.hashSync(password, salt);
             
-            const newUser = await UserRepo.createUser({name, email, password: hashPass, mobile, role, imageUrl})
+            const newUser = await UserRepo.createUser({name, email, password: hashPass, mobile, role})
             if(!newUser){
                 return errorResponse(res, 'Issue Occured in Server', [], 502)
             }
@@ -56,9 +49,7 @@ const createNewUser = async (req, res, next) => {
             const token = jwt.sign({User: newUser._id}, process.env.JWT_SECRET)
     
             successResponse(res, 'User Created Successfully', {userData, token}, 201    )
-        })
-       
-       
+
 
     }catch(err){
         next(err)
@@ -299,7 +290,7 @@ const deleteUser = async (req, res, next) => {
 
   const updateUser = async (req, res, next) => {
     const { id } = req.params;
-    const { adminFlag, ...userData } = req.body;
+    const { adminFlag = false, ...userData } = req.body;
     try {
       let updatedUser;
       if (adminFlag) {

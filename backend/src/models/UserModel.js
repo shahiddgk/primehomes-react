@@ -10,7 +10,7 @@ let UserSchema = new Schema({
   mobile: { type: String },
   role: { type: String },
   active: { type: Boolean, default: true },
-  imageUrl:{type:String}
+  imageUrl:{type:String, default:'https://res.cloudinary.com/dwf0svqiw/image/upload/v1690445272/user_beuhg4.avif'}
 },
 { 
   timestamps: true,
