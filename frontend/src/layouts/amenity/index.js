@@ -204,6 +204,8 @@ export default function Amenity () {
   return (
     <DashboardLayout>
     <DashboardNavbar />
+    <Grid container spacing={6}>
+    <Grid item xs={6} md={3}>
     <MDButton
         size='medium'
         variant = "contained"
@@ -213,8 +215,8 @@ export default function Amenity () {
         > 
         <Add /> &nbsp;&nbsp; Add Amenities 
         </MDButton>
-    <Grid container justifyContent="center" > 
-  
+        </Grid>
+    <Grid item xs={12} height='80vh'>
     <Card sx={{ my: 4 }}> 
     <MDBox
             mx={2}
@@ -297,8 +299,10 @@ export default function Amenity () {
   </Modal>
 
  
+</Grid>
 
   </DashboardLayout>
+
 
   )
 }

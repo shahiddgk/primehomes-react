@@ -1,6 +1,7 @@
 const JWT = require('jsonwebtoken')
 const { errorResponse } = require('../config/responceHandler')
 const UserRepo = require('../repo/UserRepo')
+const RolesModel = require('../models/RolesModel')
 
 
 const checkAuth = async (req, res, next) => {
@@ -22,5 +23,7 @@ const checkAuth = async (req, res, next) => {
     return errorResponse(res, 'Authentication Failed!', [] ,401)
   }
 }
+
+
 
 module.exports = checkAuth

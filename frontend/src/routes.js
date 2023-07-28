@@ -40,6 +40,8 @@ import Icon from "@mui/material/Icon";
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import DryIcon from '@mui/icons-material/Dry';
 
+
+
 const routes = [
   {
     type: "collapse",
@@ -66,6 +68,7 @@ const routes = [
     icon: <Icon fontSize="small">people</Icon>,
     route: "/users",
     component: <People />,
+    permissions: ['owner-list', 'tenants-list']
   },
   {
     type: "collapse",
@@ -74,6 +77,7 @@ const routes = [
     icon: <Icon fontSize="small">ac_unit</Icon>,
     route: "/units",
     component: <Units />,
+    permissions: ['list-units']
   },
   {
     type: "collapse",
@@ -82,6 +86,7 @@ const routes = [
     icon: <Icon fontSize="small">apartment</Icon>,
     route: "/buildings",
     component: <Buildings />,
+    permissions: ['list-buildings'],
   },
   {
     type: "collapse",
@@ -90,6 +95,7 @@ const routes = [
     icon: <Icon fontSize="small">money</Icon>,
     route: "/lease-profiling",
     component: <Lease />,
+    permissions: ['list-lease-profiling']
   },
   // {
   //   type: "collapse",
@@ -121,6 +127,7 @@ const routes = [
     component: <Roles />,
     key: "roles",
     icon: < FingerprintIcon fontSize="small" />,
+    permissions: ['role-list']
    },
   {
     route: "/amenity",
@@ -129,6 +136,7 @@ const routes = [
     component: <Amenity />,
     key: "amenity",
     icon: < DryIcon fontSize="small" />,
+    permissions: ['list-amenities']
    },
     {
       type: "collapse",

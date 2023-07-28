@@ -1,5 +1,4 @@
 const { badRequest, successResponse } = require("../config/responceHandler");
-const { create, listIndexes } = require("../models/PeopleModel");
 const PermissionsModel = require("../models/PermissionsModel");
 const RolesRepo = require('../repo/RolesRepo')
 
@@ -81,7 +80,20 @@ const deleteARole = async (req, res, next) => {
   };
 
 
+const getSingleRole = async (req, res, next) => {
+  const {name} = req.params;
+  if (!name) {
+    return badRequest(res, 'Please Provide Required Data with request', [])
+  }
 
+  const role = await RolesRepo.findSingleRoles(name);
+  if (!role) {
+    return badRequest(res, 'No Role Found', [], 404)
+  }
+
+  return successResponse(res, 'Role Fetched Successfuly', role, 200)
+
+}
 
   const getAllPermissions = async (req, res, next) => {
     try {
@@ -95,11 +107,7 @@ const deleteARole = async (req, res, next) => {
       return badRequest(res, 'Something went wrong', []);
     }
   };
-  
-  module.exports = {
-    getAllPermissions,
-  };
-  
+
 
 
 module.exports = {
@@ -107,5 +115,6 @@ module.exports = {
     getAllRoles,
     deleteARole,
     updateRole,
-    getAllPermissions
+    getAllPermissions,
+    getSingleRole
 }

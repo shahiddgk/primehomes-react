@@ -25,12 +25,12 @@ import routes from "routes";
 
 // Material Dashboard 2 React contexts
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
-
 // Images
 import brandWhite from "assets/images/logo-ct.png";
 import brandDark from "assets/images/logo-ct-dark.png";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/index.css'
+import { PermissionsProvider, usePermissions } from "PermissionsProvider";
 
 const getToken = () => {
   const tokenString = sessionStorage.getItem('data');
@@ -44,6 +44,7 @@ const getToken = () => {
 }
 
 export default function App() {
+
   const navigate = useNavigate();
   const token = getToken();
 
@@ -134,10 +135,12 @@ export default function App() {
       </Icon>
     </MDBox>
   );
-
   return (
+    
     <ThemeProvider theme={darkMode ? themeDark : theme}>
       <CssBaseline />
+      <PermissionsProvider>
+        {console.log()}
       {layout === "dashboard" && (
         <>
           <Sidenav
@@ -157,6 +160,7 @@ export default function App() {
         {getRoutes(routes)}
         <Route path="*" element={<Navigate to="/dashboard" />} />
       </Routes>
+      </PermissionsProvider>
     </ThemeProvider>
   );
 }

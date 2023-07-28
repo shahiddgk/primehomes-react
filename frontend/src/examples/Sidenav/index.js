@@ -30,6 +30,8 @@ import {
   setTransparentSidenav,
   setWhiteSidenav,
 } from "context";
+import { usePermissions } from "PermissionsProvider";
+
 
 function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const navigate = useNavigate()
@@ -38,6 +40,7 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
   const location = useLocation();
   const collapseName = location.pathname.replace("/", "");
   let textColor = "white";
+
 
   if (transparentSidenav || (whiteSidenav && !darkMode)) {
     textColor = "dark";
@@ -70,8 +73,20 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     sessionStorage.removeItem("data");
     navigate('/sign-in')
   }
-  // Render all the routes from the routes.js (All the visible items on the Sidenav)
-  const renderRoutes = routes.filter(x => x.visibility !== 'hidden').map(({ type, name, icon, title, noCollapse, key, href, route }) => {
+
+  const userPermissions = usePermissions();
+  const renderRoutes = routes
+  .filter((route) => {
+    // If the route has no permissions defined, allow access
+    if (!route.permissions) {
+      return true;
+    }
+
+    // Check if the user has at least one of the required permissions
+    return route.permissions.some((permission) => userPermissions.includes(permission));
+  })
+  .filter((x) => x.visibility !== "hidden") // Filter hidden routes
+  .map(({ type, name, icon, title, noCollapse, key, href, route }) => {
     let returnValue;
 
     if (type === "collapse") {
@@ -125,6 +140,9 @@ function Sidenav({ color, brand, brandName, routes, ...rest }) {
     }
     return returnValue;
   });
+
+
+
 
   return (
     <SidenavRoot

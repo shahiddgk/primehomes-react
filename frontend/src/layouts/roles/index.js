@@ -5,6 +5,12 @@ import { Delete, Edit } from '@mui/icons-material';
 import MDBox from 'components/MDBox';
 import DataTable from 'examples/Tables/DataTable';
 import { v4 as uuidv4 } from 'uuid';
+import Swal from 'sweetalert2';
+import toastr from 'toastr';
+import { usePermissions } from 'PermissionsProvider';
+import AccessDeniedMessage from 'layouts/authentication/components/BasicLayout/AccessDenied';
+import DashboardLayout from 'examples/LayoutContainers/DashboardLayout';
+import DashboardNavbar from 'examples/Navbars/DashboardNavbar';
 
 const PeopleColumn = [
   {
@@ -12,7 +18,7 @@ const PeopleColumn = [
     accessor: 'index',
     align: 'center',
     width: '60px',
-  },  
+  },
   {
     Header: 'Name',
     accessor: 'name',
@@ -32,17 +38,19 @@ export default function Roles() {
   const [checkboxValues, setCheckboxValues] = useState([]);
   const [roles, setRoles] = useState([]);
   const [selectedRole, setSelectedRole] = useState(null);
-  const [mode, setMode] = useState('Submit'); 
+  const [mode, setMode] = useState('Submit');
   const [permissions, setPermissions] = useState([]);
   const [permissionsFetching, setPermissionsFetching] = useState(false);
+  const userPermissions = usePermissions();
 
+  const canEdit = userPermissions.includes('edit-role');
+  const canDelete = userPermissions.includes('delete-role');
   const convertToLabelFormat = (str) => {
     return str
       .split('-')
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   };
-
   const convertToAPIFormat = (str) => {
     return str.toLowerCase().replace(/\s+/g, '-');
   };
@@ -72,7 +80,7 @@ export default function Roles() {
     }
   };
 
-   const handleEdit = async (row) => {
+  const handleEdit = async (row) => {
     setSelectedRole(row);
     setName(row.name);
     await fetchPermissions();
@@ -87,41 +95,64 @@ export default function Roles() {
   };
 
   const handleDelete = (row) => {
-    axios.delete(`/roles/role/${row._id}`)
-      .then(async (response) => {
-        const res = await axios.get('/roles/role');
-        console.log(response.data.data);
-        setRoles(res.data.data.map((x, index) => {
-          const editBtn = (
-            <Button size="medium" onClick={() => handleEdit(x)}>
-              <Edit color="info" />
-            </Button>
-          );
-          const deleteBtn = <Button size="medium" onClick={() => handleDelete(x)}> <Delete color="error" /> </Button>;
-          return {
-            ...x,
-            index: index + 1,
-            name: x.name,
-            action: <>{editBtn} {deleteBtn} </>
-          };
-        }));
-      })
-      .catch((error) => {
-        console.error(error);
-      });
-  };
-
+    Swal.fire({
+      title: `Are You Sure To Delete The Role?
+      <i> ${row.name}</i>`,
+      text: 'You will not be able to recover this data!',
+      icon: 'question',
+      showCancelButton: true,
+      confirmButtonText: 'Yes, delete it!',
+      cancelButtonText: 'No, cancel!',
+      color: 'dark',
+      confirmButtonColor: 'maroon',
+      reverseButtons: true,
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          axios.delete(`/roles/role/${row._id}`)
+            .then(async (response) => {
+              Swal.fire('Deleted!', `${response.data.message}`, 'success');
+              const res = await axios.get('/roles/role');
+              console.log(response.data.data);
+              setRoles(res.data.data.map((x, index) => {
+                const editBtn = canEdit ? (
+                  <Button size="medium" onClick={() => handleEdit(x)}>
+                    <Edit color="info" />
+                  </Button>
+                ) : null;
+                const deleteBtn = canDelete? <Button size="medium" onClick={() => handleDelete(x)}> <Delete color="error" /> </Button> : null;
+                return {
+                  ...x,
+                  index: index + 1,
+                  name: x.name,
+                  action: <>{editBtn} {deleteBtn} </>
+                };
+              }));
+            })
+            .catch((error) => {
+              console.error(error);
+            });
+        }
+        catch (error) {
+          toastr.clear();
+          toastr.error(error?.response?.data?.message);
+        }
+      } else if (result.dismiss === Swal.DismissReason.cancel) {
+        Swal.fire('Cancelled', 'Your Data Is Safe :)', 'error');
+      }
+    })
+  }
   const fetchData = async () => {
     try {
       const response = await axios.get('/roles/role');
       console.log(response.data.data);
       setRoles(response.data.data.map((x, index) => {
-        const editBtn = (
+        const editBtn = canEdit? (
           <Button size="medium" onClick={() => handleEdit(x)}>
             <Edit color="info" />
           </Button>
-        );
-        const deleteBtn = <Button size="medium" onClick={() => handleDelete(x)}> <Delete color="error" /> </Button>;
+        ) : null;
+        const deleteBtn = canDelete? <Button size="medium" onClick={() => handleDelete(x)}> <Delete color="error" /> </Button> : null;
         return {
           ...x,
           index: index + 1,
@@ -179,7 +210,7 @@ export default function Roles() {
         console.error(error);
       });
   };
-  
+
   const handleInputChange = (event) => {
     setName(event.target.value);
   };
@@ -198,6 +229,10 @@ export default function Roles() {
       .post('roles/', formData)
       .then((response) => {
         console.log(response.data);
+        if (response.status === 200) {
+          Swal.fire('Created', `${response.data.message}`, 'success');
+        }
+
         fetchData();
         fetchPermissions();
         setSelectedRole(null);
@@ -208,41 +243,51 @@ export default function Roles() {
         console.error(error);
       });
   };
-  
+
 
   return (
-    <Grid container justifyContent="center">
-      <Card sx={{ my: 4, marginLeft: '120px' }}>
-        <CardHeader title={mode === 'Submit' ? "Create Role" : "Update Role"} />
+    <DashboardLayout>
+    <DashboardNavbar />
+    <Grid container spacing={6}>
+      
+{  userPermissions.includes('role-list') ?
+    <Grid item xs={12} height='80vh'>
+  <Card sx={{ my: 4, marginLeft: '120px', maxWidth: '65%' }}>
+{userPermissions.includes('create-role') ? 
+       <> <CardHeader title={mode === 'Submit' ? "Create Role" : "Update Role"} />
         <Divider />
-        <CardContent>
+
+       <CardContent>
           <form>
             <TextField
               label="Name"
               value={name}
               onChange={handleInputChange}
             />
-              <Divider />
-              <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-                {permissionsFetching ? (
-                  <div>Loading permissions...</div>
-                ) : (
-                  permissions.map((permission) => (
-                    <FormControlLabel
-                      key={uuidv4()}
-                      control={
-                        <Checkbox
-                          checked={permission.value}
-                          onChange={handleCheckboxChange(permission.label)}
-                        />
-                      }
-                      label={permission.label}
-                    />
-                  ))
-                )}
-              </div>
             <Divider />
-            <Button variant="contained" color="white" style={{marginRight: '20px'}} onClick={mode === 'Submit' ? handleSubmit : handleUpdate}>
+            <div>
+              {permissionsFetching ? (
+                <div>Loading permissions...</div>
+              ) : (
+                <Grid container spacing={2}>
+                  {permissions.map((permission) => (
+                    <Grid item xs={6} sm={6} lg={4} xl={4} spacing={2} key={uuidv4()}>
+                      <FormControlLabel
+                        control={
+                          <Checkbox
+                            checked={permission.value}
+                            onChange={handleCheckboxChange(permission.label)}
+                          />
+                        }
+                        label={permission.label}
+                      />
+                    </Grid>
+                  ))}
+                </Grid>
+              )}
+            </div>
+            <Divider />
+            <Button variant="contained" color="white" style={{ marginRight: '20px' }} onClick={mode === 'Submit' ? handleSubmit : handleUpdate}>
               {mode === 'Submit' ? 'Submit' : 'Update'} {/* Toggle button text based on mode */}
             </Button>
             {mode === 'Update' && (
@@ -251,9 +296,9 @@ export default function Roles() {
               </Button>
             )}
           </form>
-        </CardContent>
+        </CardContent> 
         <Divider />
-        <Divider />
+        <Divider /> </>: null}
         <MDBox pt={3}>
           <DataTable
             table={{ columns: PeopleColumn, rows: roles }}
@@ -265,5 +310,9 @@ export default function Roles() {
         </MDBox>
       </Card>
     </Grid>
+      : <AccessDeniedMessage />
+}
+</Grid>
+   </DashboardLayout>
   );
 }

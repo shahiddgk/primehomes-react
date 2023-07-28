@@ -36,10 +36,16 @@ const updateRole = async (id, name, permissions) => {
     }
   };
 
+const findSingleRoles = async (name) => {
+  return await RolesModel.findOne({name})
+}
+
+
 module.exports = {
     findName,
     createNewRole,
     findAllRoles,
     deleteRole,
-    updateRole
+    updateRole,
+    findSingleRoles
 }

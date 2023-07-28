@@ -20,6 +20,7 @@ import MDInput from 'components/MDInput';
 import MDButton from 'components/MDButton';
 import { Form, Modal } from 'react-bootstrap';
 import MDTypography from 'components/MDTypography';
+import { usePermissions } from 'PermissionsProvider';
 
 const PeopleColumn = [
   {
@@ -301,13 +302,15 @@ export default function Users() {
     }
   };
 
+
+
   return (
     <DashboardLayout>
       <DashboardNavbar />
      
       <Grid container spacing={6}>
       <Grid item xs={6} md={3}>
-      <MDButton
+     <MDButton
         size="medium"
         variant="contained"
         color="info"
@@ -315,7 +318,7 @@ export default function Users() {
         onClick={createUserBtn}
       >
         <Add /> &nbsp;&nbsp; Add User
-      </MDButton>
+      </MDButton> 
           </Grid>
           <Grid item xs={12} height='80vh'>
         <Card >
