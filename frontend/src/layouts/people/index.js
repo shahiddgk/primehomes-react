@@ -21,70 +21,13 @@ import DataTable from "examples/Tables/DataTable";
 import toastr from "toastr";
 import MDTypography from "components/MDTypography";
 import { CSVLink } from "react-csv";
+import { usePermissions } from "PermissionsProvider";
+
+import AccessDeniedMessage from "layouts/authentication/components/BasicLayout/AccessDenied";
 import axios from "../../config/server.config";
 
-const PeopleColumn = [
-  {
-    Header: 'Code',
-    accessor: 'code',
-    align: 'center',
-    width: '60px'
-  },
-  {
-    Header: 'Full Name',
-    accessor: 'name',
-    align: 'center',
-    width: '12rem'
-  },
-  {
-    Header: 'Primary Email',
-    accessor: 'primaryEmail',
-    align: 'center',
-    width: '110px'
-  },
-  {
-    Header: 'Secondary Email',
-    accessor: 'secondaryEmail',
-    align: 'center',
-    width: '110px'
-  },
-  {
-    Header: 'Alternate Email',
-    accessor: 'alternateEmail',
-    align: 'center',
-    width: '110px'
-  },
-  {
-    Header: 'Landline',
-    accessor: 'landline',
-    align: 'center',
-    width: '110px'
-  },
-  {
-    Header: 'Primary Mobile',
-    accessor: 'primaryMobile',
-    align: 'center',
-    width: '110px'
-  },
-  {
-    Header: 'Secondary Mobile',
-    accessor: 'secondaryMobile',
-    align: 'center',
-    width: '110px'
-  },
-  {
-    Header: 'Authorized',
-    accessor: 'isAuthorized',
-    align: 'center',
-    width: '40px'
-  },
-  {
-    Header: 'Action',
-    accessor: 'action',
-    align: 'center',
-    width: '80px'
-  },
-]
+
+
 
 
 function Users() {
@@ -107,6 +50,75 @@ function Users() {
     isAuthorized : 'true'
   })
 
+  const userPermissions = usePermissions()
+  const requiredPermissions = ['edit-owner','delete-owner','edit-tenants','delete-tenants']; 
+  const peopleViewPermissions = ['owner-list','tenants-list']; 
+  const hasModificationPermission = userPermissions.some((permission) => requiredPermissions.includes(permission));
+  const hasVeiwPermission = userPermissions.some((permission) => peopleViewPermissions.includes(permission));
+  const PeopleColumn = [
+    {
+      Header: 'Code',
+      accessor: 'code',
+      align: 'center',
+      width: '60px'
+    },
+    {
+      Header: 'Full Name',
+      accessor: 'name',
+      align: 'center',
+      width: '12rem'
+    },
+    {
+      Header: 'Primary Email',
+      accessor: 'primaryEmail',
+      align: 'center',
+      width: '110px'
+    },
+    {
+      Header: 'Secondary Email',
+      accessor: 'secondaryEmail',
+      align: 'center',
+      width: '110px'
+    },
+    {
+      Header: 'Alternate Email',
+      accessor: 'alternateEmail',
+      align: 'center',
+      width: '110px'
+    },
+    {
+      Header: 'Landline',
+      accessor: 'landline',
+      align: 'center',
+      width: '110px'
+    },
+    {
+      Header: 'Primary Mobile',
+      accessor: 'primaryMobile',
+      align: 'center',
+      width: '110px'
+    },
+    {
+      Header: 'Secondary Mobile',
+      accessor: 'secondaryMobile',
+      align: 'center',
+      width: '110px'
+    },
+    {
+      Header: 'Authorized',
+      accessor: 'isAuthorized',
+      align: 'center',
+      width: '40px'
+    },
+    ...(userPermissions.includes('edit-owner') || userPermissions.includes('delete-owner') || userPermissions.includes('edit-tenants') || userPermissions.includes('delete-tenants')) ? [
+      {
+        Header: 'Action',
+        accessor: 'action',
+        align: 'center',
+        width: '80px'
+      },
+    ] : []
+  ]
   const editPerson = (row) => {
     setModal({show:true, forEdit: true})
     setModalValue({
@@ -137,8 +149,8 @@ function Users() {
           )
           const res = await axios.get(`people/${tab}`)
           setUserData(res.data.data.map(x => {
-            const editBtn =  <Button onClick={() => editPerson(x)} size="medium" > <Edit color="info" /> </Button>
-            const deleteBtn =  <Button onClick={() => deletePerson(x)} size="medium"> <Delete color="error" /> </Button>
+            const editBtn = hasModificationPermission? <Button onClick={() => editPerson(x)} size="medium" > <Edit color="info" /> </Button> : null
+            const deleteBtn = hasModificationPermission ? <Button onClick={() => deletePerson(x)} size="medium"> <Delete color="error" /> </Button> :null
             return{
               ...x,
               name: `${x.title} ${x.firstName} ${x.middleName} ${x.lastName}`,
@@ -164,8 +176,8 @@ function Users() {
     try{
       const res = await axios.get(`people/${tab}`)
       setUserData(res.data.data.map(x => {
-        const editBtn =  <Button onClick={() => editPerson(x)} size="medium" > <Edit color="info" /> </Button>
-        const deleteBtn =  <Button onClick={() => deletePerson(x)} size="medium"> <Delete color="error" /> </Button>
+        const editBtn = hasModificationPermission? <Button onClick={() => editPerson(x)} size="medium" > <Edit color="info" /> </Button> : null
+        const deleteBtn = hasModificationPermission? <Button onClick={() => deletePerson(x)} size="medium"> <Delete color="error" /> </Button> : null
         return{
           ...x,
           name: `${x.title} ${x.firstName} ${x.middleName} ${x.lastName}`,
@@ -224,11 +236,12 @@ function Users() {
 
   return (
     <DashboardLayout>
-
+{hasVeiwPermission? 
       <MDBox pt={1} pb={3}>
       <Tabs defaultActiveKey='Owner' justify color="dark" onSelect={(e) => setTab(e)}>
         <Tab eventKey="Owner" key={1} title="Owners" className="p-2">
           <Grid container spacing={5}>
+            {userPermissions.includes('create-owner') ? 
             <Grid item xs={6} md={3}>
               <MDButton
               size='medium'
@@ -239,6 +252,7 @@ function Users() {
               <Add /> &nbsp;&nbsp; Add Owner 
               </MDButton>
             </Grid>
+             :null}
             <Grid item xs={6} md={2}>
               <MDButton
               variant="contained"
@@ -253,6 +267,7 @@ function Users() {
               </CSVLink>
               </MDButton>
             </Grid>
+           
             <Grid item xs={12} height='80vh'>
               <Card>
                 <MDBox
@@ -285,6 +300,7 @@ function Users() {
 
         <Tab eventKey="Tenant" key={2} title="Tenants" className="p-2">
           <Grid container spacing={6}>
+          {userPermissions.includes('create-tenants') ? 
             <Grid item xs={6} md={3}>
               <MDButton
               size='medium'
@@ -294,7 +310,7 @@ function Users() {
               > 
               <Add /> &nbsp;&nbsp; Add Tenants
               </MDButton>
-            </Grid>
+            </Grid> : null}
               <Grid item xs={6} md={2}>
                 <MDButton
                 variant="contained"
@@ -344,8 +360,7 @@ function Users() {
         </Tab>
       </Tabs>
       </MDBox>
-
- 
+: <AccessDeniedMessage /> }
       <Modal
       size="lg"
       show={modal.show}

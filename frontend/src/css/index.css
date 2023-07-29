@@ -136,3 +136,18 @@
     color: #721c24;
     margin: 0;
   }
+
+.autocomplete{
+  display: flex !important;
+}
+.autocomplete>div>div{
+  display: block !important;
+  position: relative;
+}
+
+.autocomplete-container input {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24'%3E%3Cpath d='M21.656 20.245l-3.548-3.548c1.074-1.422 1.726-3.234 1.726-5.197 0-4.43-3.58-8.01-8.009-8.01-4.43 0-8.01 3.58-8.01 8.01s3.58 8.009 8.01 8.009c1.96 0 3.772-.659 5.243-1.754l3.546 3.547c.195.195.512.195.707 0s.195-.512 0-.707zM10.653 17.344c-3.34 0-6.062-2.722-6.062-6.062s2.722-6.061 6.062-6.061 6.062 2.721 6.062 6.061-2.722 6.062-6.062 6.062z' fill='%23333'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center; /* Adjust the position of the icon as needed */
+  padding-left: 38px; /* Make room for the icon */
+}

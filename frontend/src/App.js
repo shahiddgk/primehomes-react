@@ -27,7 +27,6 @@ import routes from "routes";
 import { useMaterialUIController, setMiniSidenav, setOpenConfigurator } from "context";
 // Images
 import brandWhite from "assets/images/logo-ct.png";
-import brandDark from "assets/images/logo-ct-dark.png";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import './css/index.css'
 import { PermissionsProvider, usePermissions } from "PermissionsProvider";
@@ -145,7 +144,7 @@ export default function App() {
         <>
           <Sidenav
             color={sidenavColor}
-            brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandDark : brandWhite}
+            brand={(transparentSidenav && !darkMode) || whiteSidenav ? brandWhite : brandWhite}
             brandName="Prime Homes"
             routes={routes}
             onMouseEnter={handleOnMouseEnter}

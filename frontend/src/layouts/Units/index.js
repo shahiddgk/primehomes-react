@@ -24,82 +24,13 @@ import { Form, Modal } from "react-bootstrap";
 // Data
 import toastr from "toastr";
 import Autocomplete from "react-autocomplete";
+import { usePermissions } from "PermissionsProvider";
+import AccessDeniedMessage from "layouts/authentication/components/BasicLayout/AccessDenied";
+
+
 import axios from "../../config/server.config";
 
-const UnitsColumns   = [
-  {
-    Header: 'Building',
-    accessor: 'building',
-    align: 'center',
-    width: '100px'
-  },
-  {
-    Header: 'Tenant',
-    accessor: 'tenant',
-    align: 'center',
-    width: '100px'
-  },
-  {
-    Header: 'Unit-No',
-    accessor: 'unitNo',
-    align: 'center',
-    width: '60px'
-  },
-  {
-    Header: 'Unit-Type',
-    accessor: 'unitType',
-    align: 'center',
-    width: '100px'
-  },
-  {
-    Header: 'Floor Area',
-    accessor: 'floorArea',
-    align: 'center',
-    width: '100px'
-  },
-  {
-    Header: 'Parking',
-    accessor: 'isParking',
-    align: 'center',
-    width: '70px'
-  },
-  {
-    Header: 'Slot No',
-    accessor: 'slotNo',
-    align: 'center',
-    width: '70px'
-  },
-  {
-    Header: 'Parking Area',
-    accessor: 'parkingArea',
-    align: 'center',
-    width: '70px'
-  }, 
-  {
-    Header: 'Parking Lc.',
-    accessor: 'parkingLocation',
-    align: 'center',
-    width: '100px'
-  },
-  {
-    Header: 'Fully Paid',
-    accessor: 'isFullyPaid',
-    align: 'center',
-    width: '85px'
-  },
-  {
-    Header: 'Water Meter No',
-    accessor: 'waterMeterNo',
-    align: 'center',
-    width: '50px'
-  },
-  {
-    Header: 'Action',
-    accessor: 'action',
-    align: 'center',
-    width: '100px'
-  },
-]
+
 
 function Units() {
   const [unitsData, setUnitsData] = useState([])
@@ -122,6 +53,87 @@ function Units() {
     waterMeterNo: 0
   })
 
+  const userPermissions = usePermissions()
+
+  const canEdit = userPermissions.includes('edit-unit');
+  const canDelete = userPermissions.includes('delete-unit');
+
+  const UnitsColumns   = [
+    {
+      Header: 'Building',
+      accessor: 'building',
+      align: 'center',
+      width: '100px'
+    },
+    {
+      Header: 'Tenant',
+      accessor: 'tenant',
+      align: 'center',
+      width: '100px'
+    },
+    {
+      Header: 'Unit-No',
+      accessor: 'unitNo',
+      align: 'center',
+      width: '60px'
+    },
+    {
+      Header: 'Unit-Type',
+      accessor: 'unitType',
+      align: 'center',
+      width: '100px'
+    },
+    {
+      Header: 'Floor Area',
+      accessor: 'floorArea',
+      align: 'center',
+      width: '100px'
+    },
+    {
+      Header: 'Parking',
+      accessor: 'isParking',
+      align: 'center',
+      width: '70px'
+    },
+    {
+      Header: 'Slot No',
+      accessor: 'slotNo',
+      align: 'center',
+      width: '70px'
+    },
+    {
+      Header: 'Parking Area',
+      accessor: 'parkingArea',
+      align: 'center',
+      width: '70px'
+    }, 
+    {
+      Header: 'Parking Lc.',
+      accessor: 'parkingLocation',
+      align: 'center',
+      width: '100px'
+    },
+    {
+      Header: 'Fully Paid',
+      accessor: 'isFullyPaid',
+      align: 'center',
+      width: '85px'
+    },
+    {
+      Header: 'Water Meter No',
+      accessor: 'waterMeterNo',
+      align: 'center',
+      width: '50px'
+    },
+    ...(userPermissions.includes('edit-unit') || userPermissions.includes('delete-unit')) ? [
+      {
+        Header: 'Action',
+        accessor: 'action',
+        align: 'center',
+        width: '100px'
+      },
+    ] : []
+  ]
   const editUnit = (row) => {
     setModal({show:true, forEdit: true})
     setModalValue({
@@ -178,8 +190,8 @@ function Units() {
       try{
         const res = await axios.get('units')
         setUnitsData(res.data.data.map(x => {
-          const editBtn =  <Button onClick={() => editUnit(x)} size="small" > <Edit color="info" /> </Button>
-          const deleteBtn =  <Button onClick={() => deleteUnit(x)} size="small"> <Delete color="error" /> </Button>
+          const editBtn = canEdit? <Button onClick={() => editUnit(x)} size="small" > <Edit color="info" /> </Button> : null;
+          const deleteBtn = canDelete ? <Button onClick={() => deleteUnit(x)} size="small"> <Delete color="error" /> </Button> : null;
           return{
             ...x,
             action : <>{editBtn} {deleteBtn}</>,
@@ -226,8 +238,8 @@ function Units() {
       alert(res.data.message)
 
       const x = res.data.data
-      const editBtn =  <Button onClick={() => editUnit(x)} size="medium" > <Edit color="info" /> </Button>
-      const deleteBtn =  <Button onClick={() => deleteUnit(x)} size="medium"> <Delete color="error" /> </Button>
+      const editBtn = canEdit ? <Button onClick={() => editUnit(x)} size="medium" > <Edit color="info" /> </Button> : null;
+      const deleteBtn = canDelete ? <Button onClick={() => deleteUnit(x)} size="medium"> <Delete color="error" /> </Button> : null;
       setUnitsData([...unitsData, {
         ...x,
         action: <>{editBtn} {deleteBtn} </>,
@@ -322,8 +334,10 @@ function Units() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
+      {userPermissions.includes('list-units') ? 
       <MDBox pt={1} pb={3}>
         <Grid container spacing={6}>
+          {userPermissions.includes('create-unit') ?
           <Grid item xs={6} md={3}>
             <MDButton
             size='medium'
@@ -334,7 +348,7 @@ function Units() {
             <Add /> &nbsp;&nbsp; Add Unit 
             </MDButton>
           </Grid>
-
+             : null}
           <Grid item xs={12} height='80vh'>
             <Card>
               <MDBox
@@ -364,6 +378,7 @@ function Units() {
           </Grid>
         </Grid>
       </MDBox>
+      : <AccessDeniedMessage />}
       <Footer />
     
       <Modal

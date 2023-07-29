@@ -6,6 +6,8 @@ import Card from "@mui/material/Card";
 import { useEffect, useState } from "react";
 import Swal from "sweetalert2";
 
+import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown';
+
 // Material Dashboard 2 React components
 import MDBox from "components/MDBox";
 import MDTypography from "components/MDTypography";
@@ -25,10 +27,41 @@ import {saveAs} from 'file-saver'
 // Data
 import toastr from "toastr";
 import Autocomplete from "react-autocomplete";
+import { usePermissions } from "PermissionsProvider";
+import AccessDeniedMessage from "layouts/authentication/components/BasicLayout/AccessDenied";
 import axios from "../../config/server.config";
 
 
-const LeaseColumns   = [
+
+function Lease() {
+  const [leaseData, setleaseData] = useState([])
+  const [Buildings, setBuildings] = useState([])
+  const [People, setPeople] = useState([])
+  const [unitList, setUnitList] = useState([])
+  const [selectedBuilding, setSelectedBuilding] = useState({id: 0, value: ''})
+  const [selectedTenant, setSelectedTenant] = useState({id: 0, value: ''})
+  const [selectedUnit, setselectedUnit] = useState({id: 0, value: ''})
+  const [modal, setModal] = useState({show: false, forEdit: false})
+  const [modalValue, setModalValue] = useState({
+    startDate : '',
+    endDate : '',
+    building : '',
+    unit : '',
+    leaseType : 'Short Term Lease',
+    tenant : '',
+    accuntStatus : false,
+    amenities : false,
+    leaseContract : {},
+    identity : {},
+    otherDoc1 : {},
+    otherDoc2 : {}
+ })
+
+ const userPermissions = usePermissions();
+
+ const canEdit = userPermissions.includes('edit-lease-profiling');
+ const canDelete = userPermissions.includes('delete-lease-profiling');
+ const LeaseColumns   = [
   {
     Header: 'Building',
     accessor: 'building',
@@ -101,37 +134,17 @@ const LeaseColumns   = [
     align: 'center',
     width: '75px'
   },
-  {
-    Header: 'Action',
-    accessor: 'action',
-    align: 'center',
-    width: '100px'
-  },
+  ...(canEdit || canDelete) ? [
+    {
+      Header: 'Action',
+      accessor: 'action',
+      align: 'center',
+      width: '100px'
+    },
+  ] : []
+ 
 ]
 
-function Lease() {
-  const [leaseData, setleaseData] = useState([])
-  const [Buildings, setBuildings] = useState([])
-  const [People, setPeople] = useState([])
-  const [unitList, setUnitList] = useState([])
-  const [selectedBuilding, setSelectedBuilding] = useState({id: 0, value: ''})
-  const [selectedTenant, setSelectedTenant] = useState({id: 0, value: ''})
-  const [selectedUnit, setselectedUnit] = useState({id: 0, value: ''})
-  const [modal, setModal] = useState({show: false, forEdit: false})
-  const [modalValue, setModalValue] = useState({
-    startDate : '',
-    endDate : '',
-    building : '',
-    unit : '',
-    leaseType : 'Short Term Lease',
-    tenant : '',
-    accuntStatus : false,
-    amenities : false,
-    leaseContract : {},
-    identity : {},
-    otherDoc1 : {},
-    otherDoc2 : {}
- })
 
   const downloadImage = img => {
     // saveAs (link , filename.jpg)
@@ -222,8 +235,8 @@ function Lease() {
       try{
         const res = await axios.get('lease')
         setleaseData(res.data.data.map(x => {
-          const editBtn =  <Button onClick={() => editLease(x)} size="small" > <Edit color="info" /> </Button>
-          const deleteBtn =  <Button onClick={() => deleteLease(x)} size="small"> <Delete color="error" /> </Button>
+          const editBtn = canEdit ? <Button onClick={() => editLease(x)} size="small" > <Edit color="info" /> </Button> : null
+          const deleteBtn = canDelete ? <Button onClick={() => deleteLease(x)} size="small"> <Delete color="error" /> </Button> : null
           return{
             ...x,
             action : <>{editBtn} {deleteBtn}</>,
@@ -280,8 +293,8 @@ function Lease() {
       setModal({show:false, forEdit: false})
       alert(res.data.message)
       const x = res.data.data
-      const editBtn =  <Button onClick={() => editLease(x)} size="small" > <Edit color="info" /> </Button>
-      const deleteBtn =  <Button onClick={() => deleteLease(x)} size="small"> <Delete color="error" /> </Button>
+      const editBtn = canEdit ? <Button onClick={() => editLease(x)} size="small" > <Edit color="info" /> </Button> : null
+      const deleteBtn = canDelete ? <Button onClick={() => deleteLease(x)} size="small"> <Delete color="error" /> </Button> : null
       setleaseData([...leaseData, {
         ...x,
         action: <>{editBtn} {deleteBtn} </>,
@@ -436,9 +449,12 @@ function Lease() {
   });
 
   return (
+
     <DashboardLayout> 
+{userPermissions.includes('list-lease-profiling') ? 
       <MDBox pt={1} pb={3}>
         <Grid container spacing={6}>
+          {userPermissions.includes('create-lease-profiling') ? 
           <Grid item xs={6} md={3}>
             <MDButton
             size='medium'
@@ -449,7 +465,7 @@ function Lease() {
             <Add /> &nbsp;&nbsp; Add Lease 
             </MDButton>
           </Grid>
-
+          : null}
           <Grid item xs={12} height='80vh'>
             <Card>
               <MDBox
@@ -479,6 +495,7 @@ function Lease() {
           </Grid>
         </Grid>
       </MDBox>
+      : <AccessDeniedMessage />}
       <Footer />
     
       <Modal
@@ -497,58 +514,75 @@ function Lease() {
 
       <Modal.Body style={{backgroundColor: 'ButtonFace'}}>
         <Form>
-        <div className="autocomplete col-12 col-md-12 my-2">
-          <Form.Label className="mx-4 color-blue">Building</Form.Label>
-          <Autocomplete
-              getItemValue={(item) => item.label}
-              items={buildingAutoList}
-              inputProps={{ placeholder: "Search Building" }}
-              renderItem={(item, isHighlighted) => (
-                <div
-                  style={{
-                    background: isHighlighted ? "#2E86C1" : "white",
-                    color: isHighlighted ? "white" : "black",
-                    padding: '5px 10px',
-                    borderRadius: "1px",
-                    fontSize: "15px",
-                    fontFamily: "Arial",
-                  }}
-                  key={item.key}
-                >
-                  {item.label}
-                </div>
-              )}
-              value={selectedBuilding.value}
-              onChange={(e) => onChangeBuilding(e)}
-              onSelect={(val, item) => onSelectBuilding(val, item)}
-            />
+        <div className="autocomplete col-12 col-md-12 my-2 row">
+  <Form.Label className="mx-4 color-blue">Building</Form.Label>
+  <div style={{ position: 'relative', display: 'inline-block', width: '100%' }}>
+    <Autocomplete
+      getItemValue={(item) => item.label}
+      items={buildingAutoList}
+      inputProps={{ placeholder: 'Search Building' }}
+      renderItem={(item, isHighlighted) => (
+        <div
+          style={{
+            background: isHighlighted ? '#f0f0f0' : 'white',
+            color: 'black',
+            padding: '8px 12px',
+            fontSize: '16px',
+            fontFamily: 'Arial, sans-serif',
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%',
+            cursor: 'pointer',
+          }}
+          key={item.key}
+        >
+          {item.label}
         </div>
-        <div className="autocomplete col-12 col-md-12 my-2">
-          <Form.Label className="mx-4 color-blue">Tenant &nbsp;</Form.Label>
-          <Autocomplete
-              getItemValue={(item) => item.label}
-              items={tenantAutoList}
-              inputProps={{ placeholder: "Search Tenant" }}
-              renderItem={(item, isHighlighted) => (
-                <div
-                  style={{
-                    background: isHighlighted ? "#2E86C1" : "white",
-                    color: isHighlighted ? "white" : "black",
-                    padding: '5px 10px',
-                    borderRadius: "1px",
-                    fontSize: "15px",
-                    fontFamily: "Arial",
-                  }}
-                  key={item.key}
-                >
-                  {item.label}
-                </div>
-              )}
-              value={selectedTenant.value}
-              onChange={(e) => onChangeOwner(e)}
-              onSelect={(val, item) => onSelectOwner(val, item)}
-            />
+      )}
+      value={selectedBuilding.value}
+      onChange={(e) => onChangeBuilding(e)}
+      onSelect={(val, item) => onSelectBuilding(val, item)}
+    />
+    <div
+      style={{
+        position: 'absolute',
+        top: '50%',
+        right: '10%', // Adjust this value as needed for proper positioning
+        transform: 'translateY(-50%)',
+      }}
+    >
+      <ArrowDropDownIcon />
+    </div>
+  </div>
+</div>
+<div className="autocomplete col-12 col-md-12 my-2">
+  <Form.Label className="mx-4 color-blue">Tenant &nbsp;</Form.Label>
+  <div className="autocomplete-container">
+    <Autocomplete
+      getItemValue={(item) => item.label}
+      items={tenantAutoList}
+      inputProps={{ placeholder: 'Search Tenant' }}
+      renderItem={(item, isHighlighted) => (
+        <div
+          style={{
+            background: isHighlighted ? '#2E86C1' : 'white',
+            color: isHighlighted ? 'white' : 'black',
+            padding: '5px 10px',
+            borderRadius: '1px',
+            fontSize: '15px',
+            fontFamily: 'Arial, FontAwesome',
+          }}
+          key={item.key}
+        >
+          {item.label}
         </div>
+      )}
+      value={selectedTenant.value}
+      onChange={(e) => onChangeOwner(e)}
+      onSelect={(val, item) => onSelectOwner(val, item)}
+    />
+  </div>
+</div>
         <div className="autocomplete col-12 col-md-12 my-2">
           <Form.Label className="mx-4 color-blue">Unit &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;</Form.Label>
           <Autocomplete

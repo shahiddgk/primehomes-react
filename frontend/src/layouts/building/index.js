@@ -23,60 +23,12 @@ import { Add, Create, Delete, Edit } from "@mui/icons-material";
 import { Form, Modal } from "react-bootstrap";
 
 // Data
+import { usePermissions } from "PermissionsProvider";
 import toastr from "toastr";
 import Autocomplete from "react-autocomplete";
+import AccessDeniedMessage from "layouts/authentication/components/BasicLayout/AccessDenied";
 import axios from "../../config/server.config";
 
-const BuildingColumns = [
-  {
-    Header: 'Code',
-    accessor: 'code',
-    align: 'center',
-    width: '80px'
-  },
-  {
-    Header: 'Name',
-    accessor: 'name',
-    align: 'center',
-    width: '150px'
-  },
-  {
-    Header: 'Phase',
-    accessor: 'phase',
-    align: 'center',
-    width: '50px'
-  },
-  {
-    Header: 'Address',
-    accessor: 'address',
-    align: 'center',
-    width: '250px'
-  },
-  {
-    Header: 'City',
-    accessor: 'city',
-    align: 'center',
-    width: '150px'
-  },
-  {
-    Header: 'Dues',
-    accessor: 'dues',
-    align: 'center',
-    width: '70px'
-  },
-  {
-    Header: 'Due Days',
-    accessor: 'dueDays',
-    align: 'center',
-    width: '70px'
-  },
-  {
-    Header: 'Action',
-    accessor: 'action',
-    align: 'center',
-    width: '100px'
-  },
-]
 
 function Buildings() {
   const navigate = useNavigate();
@@ -95,6 +47,66 @@ function Buildings() {
     dueDays: 0
   })
 
+  const userPermissions = usePermissions();
+
+  const canEdit = userPermissions.includes('edit-buildings');
+  const canDelete = userPermissions.includes('delete-buildings');
+
+  const BuildingColumns = [
+    {
+      Header: 'Code',
+      accessor: 'code',
+      align: 'center',
+      width: '80px'
+    },
+    {
+      Header: 'Name',
+      accessor: 'name',
+      align: 'center',
+      width: '150px'
+    },
+    {
+      Header: 'Phase',
+      accessor: 'phase',
+      align: 'center',
+      width: '50px'
+    },
+    {
+      Header: 'Address',
+      accessor: 'address',
+      align: 'center',
+      width: '250px'
+    },
+    {
+      Header: 'City',
+      accessor: 'city',
+      align: 'center',
+      width: '150px'
+    },
+    {
+      Header: 'Dues',
+      accessor: 'dues',
+      align: 'center',
+      width: '70px'
+    },
+    {
+      Header: 'Due Days',
+      accessor: 'dueDays',
+      align: 'center',
+      width: '70px'
+    },
+    ...(canEdit || canDelete) ?
+     [
+      {
+        Header: 'Action',
+        accessor: 'action',
+        align: 'center',
+        width: '100px'
+      },
+     ] : []
+    
+  ]
+  
   const editBuilding = (row) => {
     setModal({show:true, forEdit: true})
     setModalValue({
@@ -143,8 +155,8 @@ function Buildings() {
       try{
         const res = await axios.get('buildings')
         setBuildingData(res.data.data.map(x => {
-          const editBtn =  <Button onClick={() => editBuilding(x)} size="medium" > <Edit color="info" /> </Button>
-          const deleteBtn = <Button onClick={() => deleteBuilding(x)} size="medium"> <Delete color="error" /> </Button>
+          const editBtn = canEdit ? <Button onClick={() => editBuilding(x)} size="medium" > <Edit color="info" /> </Button> : null
+          const deleteBtn = canDelete ? <Button onClick={() => deleteBuilding(x)} size="medium"> <Delete color="error" /> </Button> : null
           return{
             ...x,
             action: <>{editBtn} {deleteBtn} </>
@@ -211,8 +223,8 @@ function Buildings() {
       setModal({show:false, forEdit: false})
       alert(res.data.message)
       setBuildingData(res.data.data.map(x => {
-        const editBtn =  <Button onClick={() => editBuilding(x)} size="medium" > <Edit color="info" /> </Button>
-        const deleteBtn =  <Button onClick={() => deleteBuilding(x)} size="medium"> <Delete color="error" /> </Button>
+        const editBtn = canEdit ? <Button onClick={() => editBuilding(x)} size="medium" > <Edit color="info" /> </Button> : null
+        const deleteBtn = canDelete ? <Button onClick={() => deleteBuilding(x)} size="medium"> <Delete color="error" /> </Button> : null
         return{
           ...x,
           action: <>{editBtn} {deleteBtn} </>
@@ -245,8 +257,10 @@ function Buildings() {
   return (
     <DashboardLayout>
       <DashboardNavbar />
+      {userPermissions.includes('list-buildings') ? 
       <MDBox pt={1} pb={3}>
         <Grid container spacing={6}>
+        {userPermissions.includes('create-buildings') ? 
           <Grid item xs={6} md={3}>
             <MDButton
             size='medium'
@@ -257,7 +271,7 @@ function Buildings() {
             <Add /> &nbsp;&nbsp; Add Building 
             </MDButton>
           </Grid>
-
+          : null }
           <Grid item xs={12} height='80vh'>
             <Card>
               <MDBox
@@ -288,6 +302,7 @@ function Buildings() {
 
         </Grid>
       </MDBox>
+      : <AccessDeniedMessage />}
       <Footer />
     
       <Modal

@@ -12,10 +12,9 @@ const checkPermission = (permissions) => async (req, res, next) => {
       res.status(403).json({ error: 'User role not found' });
       return;
     }
-
     // Find the user's role in the database
     const userRole = await RolesModel.findOne({ name: req.userData.role });
-
+    console.log(userRole.permissions);
     // Check if the role exists and has at least one of the required permissions
     if (
       !userRole ||

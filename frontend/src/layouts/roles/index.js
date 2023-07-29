@@ -12,26 +12,6 @@ import AccessDeniedMessage from 'layouts/authentication/components/BasicLayout/A
 import DashboardLayout from 'examples/LayoutContainers/DashboardLayout';
 import DashboardNavbar from 'examples/Navbars/DashboardNavbar';
 
-const PeopleColumn = [
-  {
-    Header: 'No',
-    accessor: 'index',
-    align: 'center',
-    width: '60px',
-  },
-  {
-    Header: 'Name',
-    accessor: 'name',
-    align: 'center',
-    width: '12rem'
-  },
-  {
-    Header: 'Action',
-    accessor: 'action',
-    align: 'center',
-    width: '80px'
-  },
-];
 
 export default function Roles() {
   const [name, setName] = useState('');
@@ -45,6 +25,34 @@ export default function Roles() {
 
   const canEdit = userPermissions.includes('edit-role');
   const canDelete = userPermissions.includes('delete-role');
+
+  const PeopleColumn = [
+    {
+      Header: 'No',
+      accessor: 'index',
+      align: 'center',
+      width: '60px',
+    },
+    {
+      Header: 'Name',
+      accessor: 'name',
+      align: 'center',
+      width: '12rem'
+    },
+    ...(userPermissions.includes('edit-role') || userPermissions.includes('delete-role')
+    ? [
+        {
+          Header: 'Action',
+          accessor: 'action',
+          align: 'center',
+          width: '80px'
+        },
+      ]
+    : []),
+  ];
+
+
+
   const convertToLabelFormat = (str) => {
     return str
       .split('-')
