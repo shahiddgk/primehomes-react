@@ -28,16 +28,23 @@ import axios from "axios";
 import { RotatingLines } from "react-loader-spinner";
 import { io } from 'socket.io-client';
 
-function Header({ children,name,role,image,email}) {
+function Header({ children, name, role, image, email }) {
   const [tabsOrientation, setTabsOrientation] = useState("horizontal");
   const [tabValue, setTabValue] = useState(0);
   const [loader, setLoader] = useState(false)
-  const [imageUrl,setImageUrl] = useState('')
-  const [updatedName,setUpdatedName] = useState('')
+  const [imageUrl, setImageUrl] = useState('')
+  const [updatedName, setUpdatedName] = useState('')
+const [type, setType] = useState('')
+
   const fileInputRef = useRef(null);
   useEffect(() => {
+    const user = sessionStorage.getItem('data');
+    const userData = JSON.parse(user)
+    setType(userData.userData.type)
+    
+
     const userId = sessionStorage.getItem('userId');
-    const socket = io.connect(`http://192.168.10.19:4003?userId=${userId}`);
+    const socket = io.connect(`http://192.168.10.24:4003?userId=${userId}`);
     socket.on('updatedUser', (data) => {
       setUpdatedName(data[0]); // Update the form values with the data received from the socket
 
@@ -74,14 +81,14 @@ function Header({ children,name,role,image,email}) {
 
 
 
-  const handleFileChange = async(event) => {
+  const handleFileChange = async (event) => {
     const file = event.target.files[0];
     console.log(file);
     const formData = new FormData();
     formData.append('avatar', file);
-    formData.append('email',email)
-    console.log(formData.get('avatar')); 
-  console.log(formData.get('email'));
+    formData.append('email', email)
+    console.log(formData.get('avatar'));
+    console.log(formData.get('email'));
     try {
       setLoader(true)
       const response = await axios.post('users/upload', formData, {
@@ -98,7 +105,7 @@ function Header({ children,name,role,image,email}) {
       console.error('Error uploading image:', error);
       // Handle error as needed
     }
-  
+
   };
 
   const handleSetTabValue = (event, newValue) => setTabValue(newValue);
@@ -132,36 +139,37 @@ function Header({ children,name,role,image,email}) {
         }}
       >
         <Grid container spacing={3} alignItems="center">
-          <Grid item>
+        {(type === 'Tenant' || type === 'Owner')? null :  <Grid item>
+          {loader ? <div style={{ marginRight: '100%', display: 'inline-block' }}>
+                <RotatingLines
+                  strokeColor="black"
+                  strokeWidth="5"
+                  animationDuration="0.75"
+                  width="65"
+                  visible
+
+                /></div> :
           <div className="profile-pic">
-            <Typography className="label" htmlFor="file" onClick={handleImageUpload}>
-              <span className="glyphicon glyphicon-camera" />
-              <span>Change</span>
-            </Typography>
-                <input type="file" 
+              <Typography className="label" htmlFor="file" onClick={handleImageUpload}>
+                <span className="glyphicon glyphicon-camera" />
+                <span>Change</span>
+              </Typography>
+              <input type="file"
                 ref={fileInputRef}
                 accept="image/*"
                 onChange={handleFileChange}
-                 />
-              {loader ? <div style={{ marginRight: '100%', display: 'inline-block' }}>
-                        <RotatingLines
-                        strokeColor="black"
-                        strokeWidth="5"
-                        animationDuration="0.75"
-                        width="65"
-                        visible
+              />
+             <MDAvatar src={imageUrl ? imageUrl : image} alt="profile-image" className="profile-image" size="xl" shadow="sm" />
+            </div>}
 
-                        /></div> : <MDAvatar src={imageUrl? imageUrl:image} alt="profile-image" className="profile-image" size="xl" shadow="sm" />}
-          </div>
-            
-          </Grid>
+          </Grid>}
           <Grid item>
             <MDBox height="100%" mt={0.5} lineHeight={1}>
               <MDTypography variant="h5" fontWeight="medium">
-                {updatedName? updatedName: name}
+                {updatedName ? updatedName : name}
               </MDTypography>
               <MDTypography variant="button" color="text" fontWeight="regular">
-               {role}
+                {role}
               </MDTypography>
             </MDBox>
           </Grid>
@@ -205,9 +213,9 @@ function Header({ children,name,role,image,email}) {
 // Setting default props for the Header
 Header.defaultProps = {
   children: "",
-  name:"",
-  role:"",
-  image:"",
+  name: "",
+  role: "",
+  image: "",
   email: ''
 };
 

@@ -47,11 +47,22 @@ function Overview() {
   const [image,setImage] = useState('')
   useEffect( async () => {
     const user = sessionStorage.getItem('data');
-    const { userData: { email } } = JSON.parse(user);
-    console.log(email);
-    const response = await axios.get(`users/user/${email}`);
-    setImage(response?.data?.data?.imageUrl);
-    setProfile(response?.data?.data);
+    const type = JSON.parse(user)
+    if (type.userData.type === 'Tenant' || type.userData.type === 'Owner') {
+      const { userData: { email } } = JSON.parse(user);
+      console.log(email);
+      const response = await axios.get(`/people/type/${email}`);
+      setImage(response?.data?.data?.imageUrl);
+      setProfile(response?.data?.data);
+    }
+    else{
+      const { userData: { email } } = JSON.parse(user);
+      console.log(email);
+      const response = await axios.get(`users/user/${email}`);
+      setImage(response?.data?.data?.imageUrl);
+      setProfile(response?.data?.data);
+    }
+   
     
   },[])
 
@@ -60,7 +71,7 @@ function Overview() {
     <DashboardLayout>
       <DashboardNavbar />
       <MDBox mb={2} />
-      <Header name={profile.name} role={profile.role} image= {image} email={profile.email} >
+      <Header name={profile.name || profile.firstName+profile.middleName+profile.lastName} role={profile.role || profile.type} image= {image} email={profile.email} >
         <MDBox mt={5} mb={3}>
           <Grid container spacing={1}>
           <Grid item xs={12} md={12} xl={8} sx={{ display: "grid", mx: "auto" }}>

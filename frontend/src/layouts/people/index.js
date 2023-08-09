@@ -38,6 +38,7 @@ function Users() {
     type: '',
     code: '',
     title: 'Mr.',
+    password: '',
     firstName: '',
     lastName: '',
     middleName: '',
@@ -385,7 +386,9 @@ function Users() {
           <MDInput focused variant="filled" value={modalValue.middleName} onChange={e => setModalValue({...modalValue, middleName: e.target.value})} style={{width: '45%', background:'white'}}  label="Middle Name" color="dark" />
           <MDInput focused variant="filled" value={modalValue.lastName} onChange={e => setModalValue({...modalValue, lastName: e.target.value})} style={{marginLeft: '2rem', width: '45%', background:'white'}}  label="Last Name" color="dark" />
           
-          <MDInput focused variant="filled" value={modalValue.primaryEmail} onChange={e => setModalValue({...modalValue, primaryEmail: e.target.value})} style={{marginRight: '50%', width: '45%', background:'white'}}  label="Primary Email" color="dark" />
+          <MDInput focused variant="filled" value={modalValue.primaryEmail} onChange={e => setModalValue({...modalValue, primaryEmail: e.target.value})} style={{width: '45%', background:'white'}}  label="Primary Email" color="dark" />
+          <MDInput focused variant="filled" value={modalValue.password} onChange={e => setModalValue({...modalValue, password: e.target.value})} style={{marginLeft: '2rem', width: '45%', background:'white'}}  label="Password" color="dark" />
+          
           
           <MDInput focused variant="filled" value={modalValue.secondaryEmail} onChange={e => setModalValue({...modalValue, secondaryEmail: e.target.value})} style={{width: '45%', background:'white'}}  label="Secondary Email" color="dark" />
           <MDInput focused variant="filled" value={modalValue.alternateEmail} onChange={e => setModalValue({...modalValue, alternateEmail: e.target.value})} style={{marginLeft: '2rem', width: '45%', background:'white'}}  label="Alternate Email" color="dark" />

@@ -8,6 +8,7 @@ let PeopleSchema = new Schema({
   type: { type: String, enum : ['Owner','Tenant'], default: 'Owner' },
   code: { type: String},
   title: { type: String},
+  password: {type: String, default: ''},
   firstName: { type: String },
   lastName: { type: String },
   middleName: { type: String },
@@ -17,7 +18,14 @@ let PeopleSchema = new Schema({
   landline: { type: String },
   primaryMobile: { type: String },
   secondaryMobile: { type: String },
-  isAuthorized : { type: Boolean}
+  isAuthorized : { type: Boolean},
+  representatives : [
+    {type: Schema.Types.ObjectId, ref:'Representatives'}
+],
+  visitors : [
+    {type: Schema.Types.ObjectId, ref:'Visitors'}
+],
+  occupants : [{type: Schema.Types.ObjectId}],
 },
 { 
   timestamps: true,

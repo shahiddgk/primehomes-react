@@ -18,7 +18,7 @@ import DashboardNavbar from "examples/Navbars/DashboardNavbar";
 import Footer from "examples/Footer";
 import DataTable from "examples/Tables/DataTable";
 import { Button } from "@mui/material";
-import { Add, Create, Delete, Edit } from "@mui/icons-material";
+import { Add, ArrowDropDown, Create, Delete, Edit } from "@mui/icons-material";
 import { Form, Modal } from "react-bootstrap";
 
 // Data
@@ -397,96 +397,131 @@ function Units() {
 
       <Modal.Body style={{backgroundColor: 'ButtonFace'}}>
         <Form>
-        <div className="d-flex">
-        <div className="autocomplete col-12 col-md-6 my-2">
-          <Form.Label className="mx-4 color-blue">Building</Form.Label>
-          <Autocomplete
-              getItemValue={(item) => item.label}
-              items={buildingAutoList}
-              inputProps={{ placeholder: "Search Building" }}
-              renderItem={(item, isHighlighted) => (
-                <div
-                  style={{
-                    background: isHighlighted ? "#2E86C1" : "white",
-                    color: isHighlighted ? "white" : "black",
-                    padding: '5px 10px',
-                    borderRadius: "1px",
-                    fontSize: "15px",
-                    fontFamily: "Arial",
-                  }}
-                  key={item.key}
-                >
-                  {item.label}
-                </div>
-              )}
-              value={selectedBuilding.value}
-              onChange={(e) => onChangeBuilding(e)}
-              onSelect={(val, item) => onSelectBuilding(val, item)}
-            />
-        </div>
-        <div className="autocomplete col-12 col-md-6 my-2">
-          <Form.Label className="mx-4 color-blue">Tenant &nbsp;&nbsp;</Form.Label>
-          <Autocomplete
-              getItemValue={(item) => item.label}
-              items={tenantAutoList}
-              inputProps={{ placeholder: "Search Tenant" }}
-              renderItem={(item, isHighlighted) => (
-                <div
-                  style={{
-                    background: isHighlighted ? "#2E86C1" : "white",
-                    color: isHighlighted ? "white" : "black",
-                    padding: '5px 10px',
-                    borderRadius: "1px",
-                    fontSize: "15px",
-                    fontFamily: "Arial",
-                  }}
-                  key={item.key}
-                >
-                  {item.label}
-                </div>
-              )}
-              value={selectedTenant.value}
+        <div className="autocomplete col-12 col-md-12 my-2 row">
+              <Form.Label className="mx-4 color-blue">Building</Form.Label>
+              <div className="autocomplete-container" style={{ position: 'relative', display: 'inline-block', width: '100%', zIndex: 9999 }}>
+                <Autocomplete
+                  getItemValue={(item) => item.label}
+                  items={buildingAutoList}
+                  inputProps={{ placeholder: 'Search Building' }}
+                  renderItem={(item, isHighlighted) => (
+                    <div
+                      style={{
+                        background: isHighlighted ? '#f0f0f0' : 'white',
+                        color: 'black',
+                        padding: '8px 12px',
+                        fontSize: '16px',
+                        fontFamily: 'Arial, sans-serif',
+                        display: 'flex',
+                        alignItems: 'center',
+                        width: '100%',
+                        cursor: 'pointer',
+                        position: 'initial',
+                        zIndex: 9999, // Set a higher z-index here
+                      }}
+                      key={item.key}
+                    >
+                      {item.label}
+                    </div>
+                  )}
+                  value={selectedBuilding.value}
+                  onChange={(e) => onChangeBuilding(e)}
+                  onSelect={(val, item) => onSelectBuilding(val, item)}
+                />
+              </div>
+            </div>
+
+            <div className="autocomplete col-12 col-md-12 my-2 row">
+              <Form.Label className="mx-4 color-blue">Tenant &nbsp;</Form.Label>
+              <div className="autocomplete-container" style={{ position: 'relative', display: 'inline-block', width: '100%', zIndex: 9990 }}>
+                <Autocomplete
+                  getItemValue={(item) => item.label}
+                  items={tenantAutoList}
+                  inputProps={{ placeholder: 'Search Tenant' }}
+                  renderItem={(item, isHighlighted) => (
+                    <div
+                      style={{
+                        background: isHighlighted ? '#f0f0f0' : 'white',
+                        color: 'black',
+                        padding: '8px 12px',
+                        fontSize: '16px',
+                        fontFamily: 'Arial, sans-serif',
+                        display: 'flex',
+                        alignItems: 'center',
+                        width: '100%',
+                        cursor: 'pointer',
+                        position: 'initial',
+                        zIndex: 9999, // Set a higher z-index here
+                      }}
+                      key={item.key}
+                    >
+                      {item.label}
+                    </div>
+                  )}
+                  value={selectedTenant.value}
               onChange={(e) => onChangeTenant(e)}
               onSelect={(val, item) => onSelectTenant(val, item)}
-            />
-        </div>
-        </div>
+                />
+              </div>
+            </div>
         <MDInput type="text" focused variant="filled" value={modalValue.unitNo} onChange={e => setModalValue({...modalValue, unitNo: e.target.value})} style={{width: '40%', background:'white'}}  label="Unit No" color="dark" />
         <MDInput type="text" focused variant="filled" value={modalValue.unitType} onChange={e => setModalValue({...modalValue, unitType: e.target.value})} style={{marginLeft:'50px', width: '40%', background:'white'}}  label="Unit Type" color="dark" />
        
         <MDInput type="number" focused variant="filled" value={modalValue.floorArea} onChange={e => setModalValue({...modalValue, floorArea: e.target.value})} style={{width: '40%', background:'white'}}  label="Floor Area" color="dark" />
         <MDInput type="number" focused variant="filled" value={modalValue.slotNo} onChange={e => setModalValue({...modalValue, slotNo: e.target.value})} style={{marginLeft:'50px', width: '40%', background:'white'}}  label="Slot No" color="dark" />
     
-        <div className="mt-2 col-12 px-2">
+        <div className="mt-2 col-12 px-2" style={{ position: "relative", width: '100%' }}>
         <Form.Label className="col-5 col-md-2 color-blue"> Parking: </Form.Label>
             <Form.Select
                 className="col-6 col-md-5 "
                 aria-label="Parking"
-                style={{  width: '25%', background:'white'}}
+                style={{  width: '100%', background:'white'}}
                 value={modalValue.isParking}
                 onChange={e => setModalValue({...modalValue, isParking: e.target.value})}
                 >
                 <option key={0} value='false'>No</option>
                 <option key={1} value='true'>Yes</option>
             </Form.Select>
+            <div
+                    style={{
+                      position: "absolute",
+                      top: "75%",
+                      right: "10px", // Adjust this value as needed for proper positioning
+                      transform: "translateY(-50%)",
+                    }}
+                  >
+
+                    <ArrowDropDown />
+                  </div>
         </div>
 
         <MDInput type="number" focused variant="filled" value={modalValue.parkingArea} onChange={e => setModalValue({...modalValue, parkingArea: e.target.value})} style={{width: '40%', background:'white'}}  label="Parking Area" color="dark" />
         <MDInput type="text" focused variant="filled" value={modalValue.parkingLocation} onChange={e => setModalValue({...modalValue, parkingLocation: e.target.value})} style={{marginLeft:'50px', width: '40%', background:'white'}}  label="Parking Location" color="dark" />
     
         <MDInput type="number" focused variant="filled" value={modalValue.waterMeterNo} onChange={e => setModalValue({...modalValue, waterMeterNo: e.target.value})} style={{width: '40%', background:'white'}}  label="Water Meter No" color="dark" />
-        <div className="mt-2 col-12 px-2">
+        <div className="mt-2 col-12 px-2" style={{ position: "relative", width: '100%' }}>
         <Form.Label className="col-5 col-md-2 color-blue"> Fully Paid: </Form.Label>
             <Form.Select
                 className="col-6 col-md-5 "
                 aria-label="Fully Paid"
-                style={{  width: '25%', background:'white'}}
+                style={{  width: '100%', background:'white'}}
                 value={modalValue.isFullyPaid}
                 onChange={e => setModalValue({...modalValue, isFullyPaid: e.target.value})}
                 >
                 <option key={0} value='false'>No</option>
                 <option key={1} value='true'>Yes</option>
             </Form.Select>
+            <div
+                    style={{
+                      position: "absolute",
+                      top: "75%",
+                      right: "10px", // Adjust this value as needed for proper positioning
+                      transform: "translateY(-50%)",
+                    }}
+                  >
+
+                    <ArrowDropDown />
+                  </div>
         </div>
 
         </Form>

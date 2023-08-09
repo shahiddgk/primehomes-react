@@ -22,7 +22,7 @@ function ProfileInfoCard({ title, info, action, shadow }) {
 
   useEffect(() => {
     const userId = sessionStorage.getItem('userId');
-    const socket = io.connect(`http://192.168.10.19:4003?userId=${userId}`);
+    const socket = io.connect(`http://192.168.10.24:4003?userId=${userId}`);
     socket.on('updatedUser', (data) => {
       setFormValues(data);
     });
@@ -42,7 +42,27 @@ function ProfileInfoCard({ title, info, action, shadow }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-
+    const user = sessionStorage.getItem('data');
+    const type = JSON.parse(user)
+    if (type.userData.type === 'Tenant' || type.userData.type === 'Owner') {
+      try {
+        const { fullName: name, email, mobile } = formValues;
+        const response = await axios.patch('people/profile', { name, email, mobile });
+        console.log(response.data);
+  
+        sessionStorage.setItem('userInfo', JSON.stringify(formValues));
+  
+        // Update the 'info' prop with the new values received from the server
+        const updatedInfo = { ...info, ...formValues };
+        setEditMode(false);
+        setFormValues(updatedInfo);
+  
+  
+      } catch (error) {
+        console.error('Error updating user information:', error);
+      }
+    }
+    else{
     try {
       const { fullName: name, email, mobile } = formValues;
       const response = await axios.put('users/profile', { name, email, mobile });
@@ -59,6 +79,7 @@ function ProfileInfoCard({ title, info, action, shadow }) {
     } catch (error) {
       console.error('Error updating user information:', error);
     }
+  }
   };
 
   const renderForm = (

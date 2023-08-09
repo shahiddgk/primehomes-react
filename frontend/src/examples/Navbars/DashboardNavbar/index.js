@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useLocation, Link } from "react-router-dom";
 import PropTypes from "prop-types";
-import { AppBar, Toolbar, IconButton, Menu, MenuItem, Avatar } from "@mui/material";
+import { AppBar, Toolbar, IconButton, Menu, MenuItem, Avatar, Badge } from "@mui/material";
 import Icon from "@mui/material/Icon";
 import MDBox from "components/MDBox";
 import MDInput from "components/MDInput";
@@ -11,6 +11,8 @@ import { navbar, navbarContainer, navbarRow, navbarIconButton, navbarMobileMenu 
 import { useMaterialUIController, setTransparentNavbar, setMiniSidenav, setOpenConfigurator } from "context";
 import axios from "axios";
 import { io } from 'socket.io-client';
+import Swal from "sweetalert2";
+import NotificationModal from "./NotificationModel"; 
 
 function DashboardNavbar({ absolute, light, isMini }) {
   const [navbarType, setNavbarType] = useState();
@@ -22,16 +24,28 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const isMenuOpen = Boolean(anchorEl);
   const [avatar, setAvatar] = useState('');
   const [userId, setUserId] = useState('');
+const [notificationCount, setNotificationCount] = useState('')
+const [notificationList, setNotificationList] = useState([])
+const [openNotificationModal, setOpenNotificationModal] = useState(false);
+const [selectedNotification, setSelectedNotification] = useState(null);
+const [modalOpen, setModalOpen] = useState(false);
+
+
+
 
   useEffect(() => {
     const user = sessionStorage.getItem('data');
     const { userData: { email } } = JSON.parse(user);
     console.log(email);
     axios.get(`users/user/${email}`)
-      .then(response => {
+      .then(async response => {
         setAvatar(response.data.data.imageUrl);
         setUserId(response.data.data._id);
         sessionStorage.setItem('userId', response.data.data._id);
+        const notifications = await axios.get('notifications/');
+        const notificationsCount = await axios.get('notifications/count');
+        setNotificationCount(notificationsCount.data.data);
+        setNotificationList(notifications.data.data);
       })
       .catch(error => console.error('Error fetching user data:', error));
   }, []);
@@ -59,7 +73,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const handleCloseMenu = () => setOpenMenu(false);
 
   useEffect(() => {
-    const socket = io.connect(`http://192.168.10.19:4003?userId=${userId}`);
+    const socket = io.connect(`http://192.168.10.24:4003?userId=${userId}`);
 
     socket.on('connect', () => {
       console.log('Connected to Socket.IO server');
@@ -70,10 +84,20 @@ function DashboardNavbar({ absolute, light, isMini }) {
       console.log('this is image', data);
     });
 
+    socket.on('updateNotificationCount', (data) => {
+      setNotificationCount(data.Notification)
+    });
+    socket.on('updateNotificationList', (data) => {
+      setNotificationList(data)
+    });
+
+  
     return () => {
       socket.disconnect();
     };
   }, [userId]);
+
+
 
   const handleProfileMenuOpen = (event) => {
     setAnchorEl(event.currentTarget);
@@ -82,7 +106,11 @@ function DashboardNavbar({ absolute, light, isMini }) {
   const handleMenuClose = () => {
     setAnchorEl(null);
   };
-
+  const handleNotificationItemClick = (notification) => {
+    setOpenMenu(false)
+    setSelectedNotification(notification);
+    setOpenNotificationModal(true);
+  };
   const menuId = 'primary-search-account-menu';
   const profileMenu = (
     <Menu
@@ -107,6 +135,60 @@ function DashboardNavbar({ absolute, light, isMini }) {
     </Menu>
   );
 
+  const handleModalClose = () => {
+    setOpenNotificationModal(false); 
+  };
+
+  const handleMarkAsRead = async () => {
+    try {
+      setOpenNotificationModal(false)
+      await axios.patch(`/notifications/${selectedNotification._id}`);
+      Swal.fire('Success', 'Notification marked as read', 'success');
+        const notifications = await axios.get('notifications/');
+        const notificationsCount = await axios.get('notifications/count');
+        setNotificationCount(notificationsCount.data.data);
+        setNotificationList(notifications.data.data);
+    } catch (error) {
+      console.error("Error marking notification as read:", error);
+      Swal.fire('Error', 'An error occurred while marking notification as read', 'error');
+    }
+  };
+
+  const handleDelete = () => {
+    setOpenNotificationModal(false)
+    Swal.fire({
+      title: 'Confirm Deletion',
+      text: 'Are you sure you want to delete this notification?',
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#d33',
+      cancelButtonColor: '#3085d6',
+      confirmButtonText: 'Delete',
+      cancelButtonText: 'Cancel',
+      customClass: {
+        popup: 'sweetalert-popup',
+      },
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await axios.delete(`/notifications/${selectedNotification._id}`);
+          Swal.fire('Success', 'Notification deleted', 'success');
+               const notifications = await axios.get('notifications/');
+        const notificationsCount = await axios.get('notifications/count');
+        setNotificationCount(notificationsCount.data.data);
+        setNotificationList(notifications.data.data);
+           } catch (error) {
+          console.error("Error deleting notification:", error);
+          Swal.fire('Error', 'An error occurred while deleting notification', 'error');
+        }
+      } else {
+        // Display a SweetAlert to inform the user that their data is safe
+        Swal.fire('Cancelled', 'Your data is safe', 'info');
+      }
+    });
+  };
+  
+
   const renderMenu = () => (
     <Menu
       anchorEl={openMenu}
@@ -119,9 +201,16 @@ function DashboardNavbar({ absolute, light, isMini }) {
       onClose={handleCloseMenu}
       sx={{ mt: 2 }}
     >
-      <NotificationItem icon={<Icon>email</Icon>} title="Check new messages" />
-      <NotificationItem icon={<Icon>podcasts</Icon>} title="Manage Podcast sessions" />
-      <NotificationItem icon={<Icon>shopping_cart</Icon>} title="Payment successfully completed" />
+      
+      {notificationList.map((notification) => (
+      <MenuItem
+        key={notification.notification.title + Date.now()}
+        onClick={() => handleNotificationItemClick(notification)}
+      >
+        {notification.notification.title}
+      </MenuItem>
+    ))}
+      
     </Menu>
   );
 
@@ -136,6 +225,9 @@ function DashboardNavbar({ absolute, light, isMini }) {
       return colorValue;
     },
   });
+
+
+
 
   return (
     <AppBar
@@ -178,6 +270,7 @@ function DashboardNavbar({ absolute, light, isMini }) {
               >
                 <Icon sx={iconsStyle}>settings</Icon>
               </IconButton>
+
               <IconButton
                 size="small"
                 disableRipple
@@ -188,9 +281,21 @@ function DashboardNavbar({ absolute, light, isMini }) {
                 variant="contained"
                 onClick={handleOpenMenu}
               >
+                <Badge badgeContent={notificationCount} color="primary">
                 <Icon sx={iconsStyle}>notifications</Icon>
+                </Badge>
               </IconButton>
               {renderMenu()}
+              {selectedNotification && (
+          <NotificationModal
+            open={openNotificationModal} 
+            onClose={handleModalClose}
+            onMarkAsRead={handleMarkAsRead}
+            onDelete={handleDelete}
+            notification={selectedNotification}
+          />
+        )}
+
             </MDBox>
           </MDBox>
         )}

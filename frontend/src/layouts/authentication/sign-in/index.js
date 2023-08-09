@@ -26,28 +26,55 @@ function Basic() {
   const handleSetRememberMe = () => setRememberMe(!rememberMe);
 
   const signInHandler = async () => {
-    try{
-      const res = await axios.post('users/login', {
-        email: data.email,
-        password: data.password
-      })
-      console.log(res);
-      alert(res?.data?.message)
-      sessionStorage.setItem("data", JSON.stringify(res.data.data));
-      const userinfo = res.data.data.userInfo
-      const newUser = {
-        fullName: userinfo.name,
-        email:userinfo.email,
-        mobile: userinfo.mobile
+    if (data.email === 'sohail@gmail.com') {
+      try{
+        const res = await axios.post('users/login', {
+          email: data.email,
+          password: data.password
+        })
+        console.log(res);
+        alert(res?.data?.message)
+        sessionStorage.setItem("data", JSON.stringify(res.data.data));
+        const userinfo = res.data.data.userInfo
+        const newUser = {
+          fullName: userinfo.name,
+          email:userinfo.email,
+          mobile: userinfo.mobile
+        }
+        console.log('new User==',newUser);
+        sessionStorage.setItem("userInfo", JSON.stringify(newUser));
+        axios.defaults.headers.common = {'Authorization': `bearer ${res?.data?.data?.token}`}
+        navigate('/')
+        return
+      }catch(err){
+        alert(err?.response?.data?.message)
       }
-      console.log('new User==',newUser);
-      sessionStorage.setItem("userInfo", JSON.stringify(newUser));
-      axios.defaults.headers.common = {'Authorization': `bearer ${res?.data?.data?.token}`}
-      navigate('/')
-
-    }catch(err){
-      alert(err?.response?.data?.message)
     }
+    else{
+      try{
+        const res = await axios.post('people/login', {
+          email: data.email,
+          password: data.password
+        })
+        console.log(res);
+        alert(res?.data?.message)
+        sessionStorage.setItem("data", JSON.stringify(res.data.data));
+        const userinfo = res.data.data.userInfo
+        const newUser = {
+          fullName: userinfo.name,
+          email:userinfo.email,
+          mobile: userinfo.mobile
+        }
+        console.log('new User==',newUser);
+        sessionStorage.setItem("userInfo", JSON.stringify(newUser));
+        axios.defaults.headers.common = {'Authorization': `bearer ${res?.data?.data?.token}`}
+        navigate('/')
+  
+      }catch(err){
+        alert(err?.response?.data?.message)
+      }
+    }
+ 
   }
 
   return (

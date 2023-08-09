@@ -134,7 +134,8 @@ const updateProfile = async (req, res, next) => {
             return badRequest(res, 'Something Went Wrong', [])
         }
         const io = req.app.get('io')
-        io.emit('updatedUser', [User.name, User.mobile, User.email])
+        io.to(_id).emit('updatedUser',[User.name, User.mobile, User.email]);
+        // io.emit('updatedUser', )
         User = {
             fullName : User.name,
             email : User.email,

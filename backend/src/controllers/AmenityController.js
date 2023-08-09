@@ -65,7 +65,7 @@ const deleteAmenity = async (req, res, next) => {
 
         const deletedAmenity = await AmenityRepo.deleteById(amenityID)
       
-        successResponse(res, 'Building Deleted Successfully.', deletedAmenity, 202)
+        successResponse(res, 'Amenity Deleted Successfully.', deletedAmenity, 202)
     }catch(err){
         next(err)
     }

@@ -39,7 +39,18 @@ import Amenity from "layouts/amenity";
 import Icon from "@mui/material/Icon";
 import FingerprintIcon from '@mui/icons-material/Fingerprint';
 import DryIcon from '@mui/icons-material/Dry';
-
+import Announcement from "layouts/announcements";
+import CampaignIcon from '@mui/icons-material/Campaign';
+import EngineeringIcon from '@mui/icons-material/Engineering';
+import SupervisedUserCircleIcon from '@mui/icons-material/SupervisedUserCircle';
+import Occupants from "layouts/occupants";
+import OccupantRequests from "layouts/occupants/OccupantsRequest";
+import Representatives from "layouts/Representators";
+import RepresentativesList from "layouts/Representators/RepresentativeList";
+import Visitors from "layouts/visitors";
+import VisitorList from "layouts/visitors/VisitorsList";
+import VisitorsCardList from "layouts/visitors/VisitorsCardList";
+import SyncAltIcon from '@mui/icons-material/SyncAlt';
 
 
 const routes = [
@@ -137,6 +148,71 @@ const routes = [
     key: "amenity",
     icon: < DryIcon fontSize="small" />,
     permissions: ['list-amenities']
+   },
+  {
+    route: "/annoucements",
+    type: 'collapse',
+    name: "Manage Annoucemnets",
+    component: <Announcement />,
+    key: "anoucements",
+    icon: <CampaignIcon fontSize="small" />,
+    permissions: ['list-announcements']
+   },
+  {
+    route: "/occupants",
+    type: 'collapse',
+    name: "Manage Occupants",
+    component: <Occupants />,
+    key: "occupant",
+    icon: <EngineeringIcon fontSize="small" />,
+   },
+  {
+    route: "/occupants/requests",
+    type: 'collapse',
+    name: "Occupant Requests",
+    component: <OccupantRequests />,
+    key: "Requests",
+    icon: <EngineeringIcon fontSize="small" />,
+   },
+  {
+    route: "/representatives",
+    type: 'collapse',
+    name: "Representatives",
+    component: <Representatives />,
+    key: "Representatives",
+    icon: <SupervisedUserCircleIcon fontSize="small" />,
+   },
+  {
+    route: "/representatives/list",
+    type: 'collapse',
+    name: "All Representatives",
+    component: <RepresentativesList />,
+    key: "representativesList",
+    icon: <SupervisedUserCircleIcon fontSize="small" />,
+   },
+  {
+    route: "/visitors",
+    type: 'collapse',
+    name: "Manage Visitors",
+    component: <Visitors />,
+    key: "visitors",
+    icon: <SyncAltIcon fontSize="small" />,
+   },
+  {
+    route: "/visitors/list",
+    type: 'collapse',
+    name: "Visitors List",
+    component: <VisitorList />,
+    key: "visitorsList",
+    icon: <SyncAltIcon fontSize="small" />,
+   },
+  {
+    route: "/cards/list",
+    type: 'collapse',
+    name: "Visitor Cards List",
+    component: <VisitorsCardList />,
+    key: "visitorCards",
+    icon: <SyncAltIcon fontSize="small" />,
    },
     {
       type: "collapse",
